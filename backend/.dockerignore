@@ -1,0 +1,17 @@
+# Dependencies
+.venv/
+
+# Build Artifacts
+__pycache__/
+*.pyc
+dist/
+*.egg-info/
+.python-version
+
+# Git Metadata
+.gitignore
+
+# Environment and Secrets
+.env
+.env.*
+!.env.example
