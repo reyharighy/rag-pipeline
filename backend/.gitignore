@@ -12,3 +12,7 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Storage
+app/storage/*
+!app/storage/*.py
