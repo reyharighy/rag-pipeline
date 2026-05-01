@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build Artifacts
+dist/
+
+# Git Metadata
+.gitignore
+
+# Environment and Secrets
+.env
+.env.*
+!.env.example
+
+# Development Artifacts 
+.vscode/
