@@ -1,10 +1,16 @@
-FROM node:20-slim
+FROM node:20-slim AS base
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+RUN chown -R node:node /app
+
+USER node
+
+COPY --chown=node:node package.json package-lock.json ./
+
 RUN npm install
 
-COPY . .
+COPY --chown=node:node . .
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+FROM base as development
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
