@@ -1,46 +1,14 @@
-# Python cache
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-
-# Virtual environment (kalau ada)
+# Dependencies
 .venv/
-venv/
-env/
 
-# uv
-.uv/
+# Build Artifacts
+__pycache__/
+*.pyc
+dist/
 *.egg-info/
+.python-version
 
-# Environment variables
+# Environment Variables
 .env
 .env.*
 !.env.example
-
-# Logs
-*.log
-
-# Database (kalau pakai SQLite)
-*.db
-*.sqlite3
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE / Editor
-.vscode/
-.idea/
-
-# Testing / coverage
-.coverage
-htmlcov/
-.pytest_cache/
-
-# Build / distribution
-dist/
-build/
-
-# uv
-.python-version
