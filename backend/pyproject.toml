@@ -4,6 +4,9 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.136.1",
+    "langchain-postgres>=0.0.17",
+    "langchain-text-splitters>=1.1.2",
+    "pymupdf4llm>=1.27.2.3",
     "python-multipart>=0.0.27",
     "redis>=7.4.0",
     "rq>=2.8.0",
