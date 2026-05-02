@@ -1,4 +1,19 @@
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-network
+
   backend:
     build:
       context: ./backend
@@ -8,11 +23,34 @@ services:
     volumes:
       - ./backend:/app
       - /app/.venv
+      - uploads_data:/app/app/storage
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
       timeout: 5s
       retries: 3
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  worker:
+    build:
+      context: ./backend
+      target: worker
+    volumes:
+      - ./backend:/app
+      - /app/.venv
+      - uploads_data:/app/app/storage
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - app-network
@@ -32,6 +70,12 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+
+volumes:
+  redis_data:
+    driver: local
+  uploads_data:
+    driver: local
 
 networks:
   app-network:
