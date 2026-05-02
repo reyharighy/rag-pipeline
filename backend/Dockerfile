@@ -14,5 +14,8 @@ RUN uv sync --frozen
 
 COPY --chown=appuser:appuser . .
 
-FROM base as development
+FROM base AS development
 CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+FROM base AS worker
+CMD ["uv", "run", "rq", "worker", "pipeline", "--with-scheduler"]
