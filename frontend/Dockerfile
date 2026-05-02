@@ -12,5 +12,5 @@ RUN npm install
 
 COPY --chown=node:node . .
 
-FROM base as development
+FROM base AS development
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
