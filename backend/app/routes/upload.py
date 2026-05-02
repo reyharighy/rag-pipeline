@@ -43,7 +43,7 @@ async def upload_file(file: UploadFile = File(...)):
     file_compatibility = check_file_compatibility(file)
 
     if file_compatibility is True:
-        file_path = STORAGE_DIR / Path(file.filename or "")
+        file_path = STORAGE_DIR / Path(str(file.filename))
 
         with file_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
@@ -52,6 +52,7 @@ async def upload_file(file: UploadFile = File(...)):
             process_file,
             file_path,
             file.filename,
+            file.content_type,
             job_timeout=JOB_TIMEOUT,
         )
 
