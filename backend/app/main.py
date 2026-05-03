@@ -1,13 +1,14 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from .routes import routers
-from app.workers.vector_store import init_db
+from . import routers, init_vector_db
+
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_db()
+async def lifespan(_: FastAPI):
+    init_vector_db()
     yield
+
 
 app = FastAPI(lifespan=lifespan)
 

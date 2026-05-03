@@ -3,12 +3,15 @@ from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from rq.job import Job
 
-from app import STORAGE_DIR, pipeline_queue, redis_conn, process_file
+from app.storage import STORAGE_DIR
+from app.services import rag_pipeline, job_queue_conn
+from app.workers import process_file
 
 router = APIRouter()
 
 ALLOWED_TYPES = ["application/pdf", "text/plain"]
 JOB_TIMEOUT = 5 * 60
+
 
 def check_file_compatibility(file: UploadFile):
     if file.content_type not in ALLOWED_TYPES:
@@ -19,11 +22,9 @@ def check_file_compatibility(file: UploadFile):
 
     return True
 
+
 def fetch_jobs(ids: list[str], status: str):
-    jobs = Job.fetch_many(
-        ids,
-        connection=redis_conn
-    )
+    jobs = Job.fetch_many(ids, connection=job_queue_conn)
 
     return [
         {
@@ -34,9 +35,10 @@ def fetch_jobs(ids: list[str], status: str):
             "ended_at": job.ended_at.isoformat() if job.ended_at else None,
             "result": job.result,
         }
-
-        for job in jobs if job is not None
+        for job in jobs
+        if job is not None
     ]
+
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -48,7 +50,7 @@ async def upload_file(file: UploadFile = File(...)):
         with file_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        pipeline_queue.enqueue(
+        rag_pipeline.enqueue(
             process_file,
             file_path,
             file.filename,
@@ -56,23 +58,21 @@ async def upload_file(file: UploadFile = File(...)):
             job_timeout=JOB_TIMEOUT,
         )
 
-        return {
-            "file_name": file.filename,
-            "message": "File uploaded successfully"
-        }
+        return {"file_name": file.filename, "message": "File uploaded successfully"}
 
     raise HTTPException(**file_compatibility)
 
+
 @router.get("/upload/jobs")
 def get_all_jobs():
-    queued_ids   = pipeline_queue.job_ids
-    started_ids  = pipeline_queue.started_job_registry.get_job_ids()
-    finished_ids = pipeline_queue.finished_job_registry.get_job_ids()
-    failed_ids   = pipeline_queue.failed_job_registry.get_job_ids()
+    queued_ids = rag_pipeline.job_ids
+    started_ids = rag_pipeline.started_job_registry.get_job_ids()
+    finished_ids = rag_pipeline.finished_job_registry.get_job_ids()
+    failed_ids = rag_pipeline.failed_job_registry.get_job_ids()
 
     return {
-        "queued":   fetch_jobs(queued_ids, "queued"),
-        "started":  fetch_jobs(started_ids, "started"),
+        "queued": fetch_jobs(queued_ids, "queued"),
+        "started": fetch_jobs(started_ids, "started"),
         "finished": fetch_jobs(finished_ids, "finished"),
-        "failed":   fetch_jobs(failed_ids, "failed"),
+        "failed": fetch_jobs(failed_ids, "failed"),
     }
