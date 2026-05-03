@@ -13,17 +13,22 @@ class ChatAgentRequest(BaseModel):
     chat_input: str
 
 def event_generator(graph: CompiledStateGraph[State], state: State, context: Context):
-    for event in graph.stream(state, context=context, stream_mode="updates"): # type: ignore[arg-type]
-        print("Event:", event)
-        encoded_event = jsonable_encoder(event)
-        print("Encoded Event:", encoded_event)
+    try:
+        for event in graph.stream(state, context=context, stream_mode="updates"): # type: ignore[arg-type]
+            encoded_event = jsonable_encoder(event)
 
+            payload = json.dumps({
+                "type": "update",
+                "data": encoded_event
+            })
+
+            yield f"{payload}\n\n"
+
+    except Exception as e:
         payload = json.dumps({
             "type": "update",
-            "data": encoded_event
+            "data": str(e)
         })
-
-        print("Payload:", payload)
 
         yield f"{payload}\n\n"
 
