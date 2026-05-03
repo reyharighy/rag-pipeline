@@ -16,3 +16,6 @@ dist/
 # Storage
 app/storage/*
 !app/storage/*.py
+
+# Ruff
+.ruff_cache/
