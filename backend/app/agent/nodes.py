@@ -5,6 +5,7 @@ from typing import Any
 from .runtime import Context
 from .state import State
 
+
 def first_node(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
     sleep(5)
 

@@ -9,28 +9,25 @@ from app.agent import get_initial_state, State, Context
 
 router = APIRouter()
 
+
 class ChatAgentRequest(BaseModel):
     chat_input: str
 
+
 def event_generator(graph: CompiledStateGraph[State], state: State, context: Context):
     try:
-        for event in graph.stream(state, context=context, stream_mode="updates"): # type: ignore[arg-type]
+        for event in graph.stream(state, context=context, stream_mode="updates"):  # type: ignore[arg-type]
             encoded_event = jsonable_encoder(event)
 
-            payload = json.dumps({
-                "type": "update",
-                "data": encoded_event
-            })
+            payload = json.dumps({"type": "update", "data": encoded_event})
 
             yield f"{payload}\n\n"
 
     except Exception as e:
-        payload = json.dumps({
-            "type": "update",
-            "data": str(e)
-        })
+        payload = json.dumps({"type": "update", "data": str(e)})
 
         yield f"{payload}\n\n"
+
 
 @router.post("/chat")
 def chat_agent(request: Request, chat_agent: ChatAgentRequest):
