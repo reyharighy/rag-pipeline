@@ -6,6 +6,7 @@ dependencies = [
     "fastapi>=0.136.1",
     "langchain-postgres>=0.0.17",
     "langchain-text-splitters>=1.1.2",
+    "langgraph>=1.1.10",
     "pymupdf4llm>=1.27.2.3",
     "python-multipart>=0.0.27",
     "redis>=7.4.0",
