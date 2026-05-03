@@ -3,6 +3,7 @@ from langchain_core.documents import Document
 
 from app.services import get_vector_db_service
 
+
 def store_chunks(chunks: list[str], file_path: Path, file_name: str, content_type: str):
     metadata = {
         "file_path": str(file_path),
