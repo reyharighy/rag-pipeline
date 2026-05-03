@@ -6,6 +6,4 @@ routers = [
     upload_endpoint,
 ]
 
-__all__ = [
-    "routers"
-]
+__all__ = ["routers"]
