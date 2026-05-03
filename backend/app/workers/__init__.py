@@ -1,3 +1,3 @@
-from .vector_store import process_file
+from .file_embedder import embed_file
 
-__all__ = ["process_file"]
+__all__ = ["embed_file"]
