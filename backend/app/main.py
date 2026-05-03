@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from .routes import routers
+from .api.routes import routers
 from app.workers.vector_store import init_db
 
 
