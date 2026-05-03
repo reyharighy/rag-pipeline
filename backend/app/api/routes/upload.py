@@ -4,8 +4,8 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from rq.job import Job
 
 from app.storage import STORAGE_DIR
-from app.services import rag_pipeline, job_queue_conn
-from app.workers import process_file
+from app.services import file_embedding_queue, job_queue_conn
+from app.workers import embed_file_and_store
 
 router = APIRouter()
 
@@ -50,8 +50,8 @@ async def upload_file(file: UploadFile = File(...)):
         with file_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        rag_pipeline.enqueue(
-            process_file,
+        file_embedding_queue.enqueue(
+            embed_file_and_store,
             file_path,
             file.filename,
             file.content_type,
@@ -65,10 +65,10 @@ async def upload_file(file: UploadFile = File(...)):
 
 @router.get("/upload/jobs")
 def get_all_jobs():
-    queued_ids = rag_pipeline.job_ids
-    started_ids = rag_pipeline.started_job_registry.get_job_ids()
-    finished_ids = rag_pipeline.finished_job_registry.get_job_ids()
-    failed_ids = rag_pipeline.failed_job_registry.get_job_ids()
+    queued_ids = file_embedding_queue.job_ids
+    started_ids = file_embedding_queue.started_job_registry.get_job_ids()
+    finished_ids = file_embedding_queue.finished_job_registry.get_job_ids()
+    failed_ids = file_embedding_queue.failed_job_registry.get_job_ids()
 
     return {
         "queued": fetch_jobs(queued_ids, "queued"),
