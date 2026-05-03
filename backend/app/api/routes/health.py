@@ -4,5 +4,5 @@ router = APIRouter()
 
 
 @router.get("/health")
-def read_root():
+def check_health():
     return {"message": "Hello from backend!"}
