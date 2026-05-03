@@ -5,7 +5,7 @@ from rq.job import Job
 
 from app.storage import STORAGE_DIR
 from app.services import file_embedding_queue, job_queue_conn
-from app.workers import embed_file
+from app.workers import embed_file_and_store
 
 router = APIRouter()
 
@@ -51,7 +51,7 @@ async def upload_file(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, buffer)
 
         file_embedding_queue.enqueue(
-            embed_file,
+            embed_file_and_store,
             file_path,
             file.filename,
             file.content_type,
