@@ -3,7 +3,9 @@ from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from rq.job import Job
 
-from app import STORAGE_DIR, pipeline_queue, redis_conn, process_file
+from app.storage import STORAGE_DIR
+from app.services import rag_pipeline, job_queue_conn
+from app.workers import process_file
 
 router = APIRouter()
 
@@ -22,7 +24,7 @@ def check_file_compatibility(file: UploadFile):
 
 
 def fetch_jobs(ids: list[str], status: str):
-    jobs = Job.fetch_many(ids, connection=redis_conn)
+    jobs = Job.fetch_many(ids, connection=job_queue_conn)
 
     return [
         {
@@ -48,7 +50,7 @@ async def upload_file(file: UploadFile = File(...)):
         with file_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        pipeline_queue.enqueue(
+        rag_pipeline.enqueue(
             process_file,
             file_path,
             file.filename,
@@ -63,10 +65,10 @@ async def upload_file(file: UploadFile = File(...)):
 
 @router.get("/upload/jobs")
 def get_all_jobs():
-    queued_ids = pipeline_queue.job_ids
-    started_ids = pipeline_queue.started_job_registry.get_job_ids()
-    finished_ids = pipeline_queue.finished_job_registry.get_job_ids()
-    failed_ids = pipeline_queue.failed_job_registry.get_job_ids()
+    queued_ids = rag_pipeline.job_ids
+    started_ids = rag_pipeline.started_job_registry.get_job_ids()
+    finished_ids = rag_pipeline.finished_job_registry.get_job_ids()
+    failed_ids = rag_pipeline.failed_job_registry.get_job_ids()
 
     return {
         "queued": fetch_jobs(queued_ids, "queued"),
