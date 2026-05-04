@@ -10,14 +10,13 @@ from .state import State
 
 
 def get_relevant_docs(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
-    query = state["messages"][-1]
     store = get_vector_db_service()
+    query = state["messages"][-1]
 
     relevant_docs = store.similarity_search(str(query.content))
 
-    return {
-        "relevant_docs": relevant_docs
-    }
+    return {"relevant_docs": relevant_docs}
+
 
 def response(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
     system_prompt = "Based on the information below, answer the user question:\n"
