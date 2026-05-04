@@ -3,7 +3,7 @@ from functools import lru_cache
 from langchain_postgres import PGEngine, PGVectorStore
 from sqlalchemy.exc import ProgrammingError
 
-from app.services import get_embedding_service
+from .embedding import get_embedding_service
 
 VECTORDB_URL = os.getenv("VECTORDB_URL", None)
 
