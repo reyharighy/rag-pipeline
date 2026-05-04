@@ -1,6 +1,7 @@
-from .routes import health_endpoint, upload_endpoint
+from .routes import chat_endpoint, health_endpoint, upload_endpoint
 
 routers = [
+    chat_endpoint,
     health_endpoint,
     upload_endpoint,
 ]

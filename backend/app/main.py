@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from . import routers, init_vector_db
+from app.api import routers
+from app.services import init_vector_db
 
 
 @asynccontextmanager

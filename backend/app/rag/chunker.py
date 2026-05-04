@@ -3,6 +3,7 @@ from langchain_text_splitters import (
     MarkdownTextSplitter,
 )
 
+
 def chunk_text(extracted_text: str, content_type: str):
     if content_type == "text/plain":
         splitter = RecursiveCharacterTextSplitter(
