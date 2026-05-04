@@ -4,6 +4,7 @@ from .nodes import first_node
 from .runtime import Context
 from .state import State
 
+
 class Graph:
     def __init__(self):
         self.graph_builder = StateGraph(
@@ -17,10 +18,7 @@ class Graph:
             action=first_node,
         )
 
-        self.graph_builder.add_edge(
-            start_key=START,
-            end_key="first_node"
-        )
+        self.graph_builder.add_edge(start_key=START, end_key="first_node")
 
         self.graph_builder.add_edge(
             start_key="first_node",
