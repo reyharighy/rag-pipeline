@@ -12,4 +12,4 @@ if COHERE_API_KEY is None:
 def get_embedding_service():
     return CohereEmbeddings(
         cohere_api_key=COHERE_API_KEY, model="embed-multilingual-v3.0"
-    ) # type: ignore[report-call-issue]
+    )  # type: ignore[report-call-issue]
