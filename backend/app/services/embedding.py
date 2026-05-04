@@ -10,7 +10,6 @@ if COHERE_API_KEY is None:
 
 @lru_cache(maxsize=1)
 def get_embedding_service():
-    return CohereEmbeddings(                    # type: ignore[report-call-issue]
-        cohere_api_key=COHERE_API_KEY,
-        model="embed-multilingual-v3.0"
-    )
+    return CohereEmbeddings(
+        cohere_api_key=COHERE_API_KEY, model="embed-multilingual-v3.0"
+    )  # type: ignore[report-call-issue]
