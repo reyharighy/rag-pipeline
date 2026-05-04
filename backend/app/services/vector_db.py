@@ -10,7 +10,7 @@ VECTORDB_URL = os.getenv("VECTORDB_URL", None)
 if VECTORDB_URL is None:
     print("'VECTORDB_URL' is not found")
 
-VECTOR_SIZE = os.getenv("VECTOR_SIZE", 512)
+VECTOR_SIZE = os.getenv("VECTOR_SIZE", 0)
 
 if VECTOR_SIZE is 0:
     print("'VECTOR_SIZE' is not found")
