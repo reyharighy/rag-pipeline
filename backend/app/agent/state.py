@@ -3,10 +3,8 @@ from langgraph.graph import MessagesState
 
 
 def get_initial_state(chat_input: str):
-    return State(
-        messages=[HumanMessage(content=chat_input)],
-    )
+    return State(messages=[HumanMessage(content=chat_input)], relevant_docs=None)
 
 
 class State(MessagesState):
-    pass
+    relevant_docs: list | None

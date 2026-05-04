@@ -27,8 +27,6 @@ def get_language_model(**kwargs: Unpack[ModelKwargs]):
         timeout=None,
     )
 
-    llm = llm.with_retry(retry_if_exception_type=(
-        BadRequestError,
-    ))
+    llm = llm.with_retry(retry_if_exception_type=(BadRequestError,))
 
     return llm
