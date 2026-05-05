@@ -8,12 +8,20 @@ from .embedding import get_embedding_service
 VECTORDB_URL = os.getenv("VECTORDB_URL", None)
 
 if VECTORDB_URL is None:
-    print("'VECTORDB_URL' is not found")
+    raise ValueError("'VECTORDB_URL' is not found")
 
-VECTOR_SIZE = os.getenv("VECTOR_SIZE", 0)
+VECTOR_EMBEDDING_DIMENSION_RAW = os.getenv("VECTOR_EMBEDDING_DIMENSION")
 
-if VECTOR_SIZE is 0:
-    print("'VECTOR_SIZE' is not found")
+if VECTOR_EMBEDDING_DIMENSION_RAW is None or str(VECTOR_EMBEDDING_DIMENSION_RAW).strip() == "":
+    raise ValueError("'VECTOR_EMBEDDING_DIMENSION' is not found")
+
+try:
+    VECTOR_EMBEDDING_DIMENSION = int(VECTOR_EMBEDDING_DIMENSION_RAW)
+except ValueError as e:
+    raise ValueError("'VECTOR_EMBEDDING_DIMENSION' must be an integer") from e
+
+if VECTOR_EMBEDDING_DIMENSION <= 0:
+    raise ValueError("'VECTOR_EMBEDDING_DIMENSION' must be positive")
 
 
 @lru_cache(maxsize=1)
@@ -33,7 +41,7 @@ def init_vector_db():
     try:
         get_vector_db_engine().init_vectorstore_table(
             table_name="documents",
-            vector_size=int(VECTOR_SIZE),
+            vector_size=VECTOR_EMBEDDING_DIMENSION,
         )
     except ProgrammingError:
         pass
