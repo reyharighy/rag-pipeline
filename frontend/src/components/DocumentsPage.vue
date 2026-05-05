@@ -1,21 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
-  fetchUploadJobs,
   uploadDocuments,
-  flattenJobs,
   VECTOR_EMBEDDING_DIMENSION,
   type PipelineJob,
   type PipelineJobStatus,
 } from '../api/upload'
+import { documentsJobs as jobs, documentsJobsError as loadError, refreshDocumentsJobs } from '../lib/documentsJobsStore'
+import { pushToast } from '../lib/toast'
 
 type SortKey = 'name' | 'date'
 type SortDir = 'asc' | 'desc'
 
-const jobs = ref<PipelineJob[]>([])
-const loadError = ref<string | null>(null)
 const uploading = ref(false)
-const uploadMessage = ref<string | null>(null)
 const filterText = ref('')
 const sortKey = ref<SortKey>('date')
 const sortDir = ref<SortDir>('desc')
@@ -24,26 +21,9 @@ const currentPage = ref(1)
 const expandedId = ref<string | null>(null)
 const dragActive = ref(false)
 
-let pollTimer: ReturnType<typeof setInterval> | null = null
-
 async function loadJobs() {
-  try {
-    const data = await fetchUploadJobs()
-    jobs.value = flattenJobs(data)
-    loadError.value = null
-  } catch (e) {
-    loadError.value = e instanceof Error ? e.message : String(e)
-  }
+  await refreshDocumentsJobs()
 }
-
-onMounted(() => {
-  void loadJobs()
-  pollTimer = setInterval(() => void loadJobs(), 4000)
-})
-
-onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer)
-})
 
 const filtered = computed(() => {
   const q = filterText.value.trim().toLowerCase()
@@ -132,7 +112,6 @@ async function onFilePick(files: FileList | null) {
 
   const list = Array.from(files)
   uploading.value = true
-  uploadMessage.value = null
 
   try {
     const { succeeded, failed } = await uploadDocuments(list)
@@ -142,14 +121,17 @@ async function onFilePick(files: FileList | null) {
     const ok = succeeded.length
 
     if (failed.length === 0) {
-      uploadMessage.value = list.length === 1 ? 'File uploaded successfully.' : `${ok} files uploaded successfully.`
+      pushToast(list.length === 1 ? 'File uploaded successfully.' : `${ok} files uploaded successfully.`, 'success')
     } else if (ok === 0) {
-      uploadMessage.value = failed.map((f) => `${f.file_name}: ${f.detail}`).join(' ')
+      pushToast(failed.map((f) => `${f.file_name}: ${f.detail}`).join(' '), 'error')
     } else {
-      uploadMessage.value = `${ok} of ${list.length} uploaded. ${failed.map((f) => `${f.file_name}: ${f.detail}`).join(' ')}`
+      pushToast(
+        `${ok} of ${list.length} uploaded. ${failed.map((f) => `${f.file_name}: ${f.detail}`).join(' ')}`,
+        'error',
+      )
     }
   } catch (e) {
-    uploadMessage.value = e instanceof Error ? e.message : String(e)
+    pushToast(e instanceof Error ? e.message : String(e), 'error')
   } finally {
     uploading.value = false
   }
@@ -271,7 +253,6 @@ function formatJobTimestamp(iso: string | null | undefined): string {
         </label>
       </div>
 
-      <p v-if="uploadMessage" class="mx-auto mb-2 max-w-3xl text-sm text-zinc-900 dark:text-zinc-200">{{ uploadMessage }}</p>
       <p v-if="loadError" class="mx-auto mb-2 max-w-3xl text-sm text-red-700 dark:text-red-400">{{ loadError }}</p>
 
       <div class="mx-auto mb-3 flex justify-between max-w-3xl flex-row items-end gap-4">
