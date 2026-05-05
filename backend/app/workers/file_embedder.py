@@ -1,17 +1,34 @@
 from pathlib import Path
-
 from app.rag import extract_text, chunk_text, transform_chunks_into_docs
 from app.services import get_vector_db_service
 
 
-def embed_file_and_store(file_path: Path, file_name: str, content_type: str):
+def embed_file_and_store(
+    file_path: Path, file_name: str, content_type: str, _file_size: int
+):
     extracted_text = extract_text(file_path, content_type)
     chunks = chunk_text(extracted_text, content_type)
     documents = transform_chunks_into_docs(chunks, file_path, file_name, content_type)
-    get_vector_db_service().add_documents(documents)
+
+    try:
+        get_vector_db_service().add_documents(documents)
+    except Exception as e:
+        print(f"[FILE EMBEDDER] Failed to embed and store file: {e}")
+
+        return {
+            "chunks": len(chunks),
+            "result": {
+                "status": "error",
+                "message": "Failed to embed and store file",
+            },
+        }
+
+    print(f"[FILE EMBEDDER] File embedded and stored successfully")
 
     return {
-        "filename": file_name,
-        "total_chunks": len(chunks),
-        "status": "File processed",
+        "chunks": len(chunks),
+        "result": {
+            "status": "success",
+            "message": "File embedded and stored successfully",
+        },
     }
