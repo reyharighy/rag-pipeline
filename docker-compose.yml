@@ -41,7 +41,7 @@ services:
       - /app/.venv
       - uploads_data:/app/app/storage
     env_file:
-      - ./backend/.env
+      - ./.env
     environment:
       - REDIS_URL=redis://redis:6379
       - VECTORDB_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@vectordb:5432/${POSTGRES_DB}
@@ -68,7 +68,7 @@ services:
       - /app/.venv
       - uploads_data:/app/app/storage
     env_file:
-      - ./backend/.env
+      - ./.env
     environment:
       - REDIS_URL=redis://redis:6379
       - VECTORDB_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@vectordb:5432/${POSTGRES_DB}
@@ -92,6 +92,10 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    env_file:
+      - ./.env
+    environment:
+      - VITE_VECTOR_EMBEDDING_DIMENSION=${VECTOR_EMBEDDING_DIMENSION}
     depends_on:
       backend:
         condition: service_healthy

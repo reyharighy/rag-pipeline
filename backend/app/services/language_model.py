@@ -1,7 +1,12 @@
+import os
 from typing import Literal, TypedDict, Unpack
 from langchain_groq import ChatGroq
 from groq import BadRequestError
 
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", None)
+
+if GROQ_API_KEY is None:
+    raise ValueError("'GROQ_API_KEY' is not found")
 
 class ModelKwargs(TypedDict, total=False):
     model: Literal["openai/gpt-oss-20b", "openai/gpt-oss-120b"]
