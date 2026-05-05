@@ -2,10 +2,10 @@ import os
 from redis import Redis
 from rq import Queue
 
-redis_url = os.getenv("REDIS_URL", None)
+REDIS_URL = os.getenv("REDIS_URL", None)
 
-if redis_url is None:
+if REDIS_URL is None:
     raise ValueError("'REDIS_URL' is not found")
 
-job_queue_conn = Redis.from_url(redis_url)
+job_queue_conn = Redis.from_url(REDIS_URL)
 file_embedding_queue = Queue(name="file_embedding_queue", connection=job_queue_conn)
