@@ -1,14 +1,26 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
+import AppToast from './components/AppToast.vue'
 import ChatPage from './components/ChatPage.vue'
 import DocumentsPage from './components/DocumentsPage.vue'
+import { startDocumentsJobsPolling, stopDocumentsJobsPolling } from './lib/documentsJobsStore'
 
 type NavKey = 'chat' | 'documents'
 const active = ref<NavKey>('chat')
+
+onMounted(() => {
+  startDocumentsJobsPolling()
+})
+
+onUnmounted(() => {
+  stopDocumentsJobsPolling()
+})
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 w-full">
+  <div class="relative flex h-full min-h-0 w-full">
+    <AppToast />
+
     <aside
       class="flex w-fit shrink-0 flex-col gap-2 px-4 border-r border-zinc-200 bg-white p-2 pt-3 dark:border-zinc-700 dark:bg-zinc-900"
       aria-label="Primary"
