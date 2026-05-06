@@ -95,9 +95,7 @@ def list_prompt_templates() -> list[dict[str, str]]:
 
         rows = cur.fetchall()
 
-    return [
-        {"key": row[0], "body": row[1], "updated_at": row[2]} for row in rows
-    ]
+    return [{"key": row[0], "body": row[1], "updated_at": row[2]} for row in rows]
 
 
 def get_template_body(key: str) -> str:

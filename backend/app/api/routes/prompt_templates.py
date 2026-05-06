@@ -20,7 +20,9 @@ def get_prompt_templates() -> dict[str, list[dict[str, str]]]:
 
 
 @router.put("/prompt-templates/{key}")
-def put_prompt_template(key: str, payload: PromptTemplateUpdate) -> dict[str, str | bool]:
+def put_prompt_template(
+    key: str, payload: PromptTemplateUpdate
+) -> dict[str, str | bool]:
     if key not in TEMPLATE_KEYS:
         raise HTTPException(status_code=404, detail="Unknown template key")
 
