@@ -19,7 +19,9 @@ logger = logging.getLogger("uvicorn.error")
 router = APIRouter()
 
 
-def _log_component(comp: ModelStatus | VectorDbStatus | WorkerStatus) -> dict[str, str | None]:
+def _log_component(
+    comp: ModelStatus | VectorDbStatus | WorkerStatus,
+) -> dict[str, str | None]:
     """Subset for logs: status, optional name, optional detail on error."""
     out: dict[str, str | None] = {"status": comp["status"]}
 
