@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.agent import Graph
 from app.api import routers
-from app.services import init_vector_db
+from app.services import init_tables_if_not_exists
 
 
 ALLOWED_ORIGINS = [
@@ -18,7 +18,7 @@ DEV_ORIGIN_REGEX = r"https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_vector_db()
+    init_tables_if_not_exists()
     app.state.graph = Graph().build_graph()
 
     yield
