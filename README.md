@@ -49,7 +49,7 @@ Backend bersifat **API-first** dan dapat diuji lewat UI lokal atau klien HTTP la
 | Lapisan | Teknologi | Peran |
 |--------|-----------|--------|
 | Klien | **Vue 3** + Vite, Tailwind | UI chat, unggah file, streaming respons |
-| API | **FastAPI** | `POST /upload`, `POST /chat`, `GET /health`, histori & pekerjaan unggah |
+| API | **FastAPI** | `POST /upload`, `POST /chat`, `GET /health`, `GET/PUT /prompt-templates`, histori & pekerjaan unggah |
 | Orkestrasi RAG | **LangGraph** | Graf: `refine_query` → `get_relevant_docs` → `response` |
 | Antrean pekerjaan | **Redis** + **RQ** | Embedding dokumen di latar belakang (API tetap responsif) |
 | Penyimpanan vektor & histori | **PostgreSQL 16** + **pgvector** (via `langchain-postgres`) | Vektor chunk + **PostgresChatMessageHistory** |
