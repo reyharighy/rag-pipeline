@@ -39,7 +39,6 @@ def _flatten_langchain_message_content(
     *,
     kind: Literal["human", "ai"],
 ) -> str | None:
-    """Normalize LangChain message content (plain string or multimodal blocks) to text."""
     if isinstance(content, str):
         return content
 
