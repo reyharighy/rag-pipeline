@@ -3,11 +3,12 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import AppToast from './components/AppToast.vue'
 import ChatPage from './components/ChatPage.vue'
 import DocumentsPage from './components/DocumentsPage.vue'
+import PromptsPage from './components/PromptsPage.vue'
 import SystemHealthBadge from './components/SystemHealthBadge.vue'
 import { startDocumentsJobsPolling, stopDocumentsJobsPolling } from './lib/documentsJobsStore'
 import { startSystemHealthPolling, stopSystemHealthPolling } from './lib/systemHealthStore'
 
-type NavKey = 'chat' | 'documents'
+type NavKey = 'chat' | 'documents' | 'prompts'
 const active = ref<NavKey>('chat')
 
 onMounted(() => {
@@ -55,11 +56,25 @@ onUnmounted(() => {
       >
         Documents
       </button>
+
+      <button
+        type="button"
+        class="rounded-md px-1.5 py-2 text-center text-xs font-semibold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 hover:cursor-pointer"
+        :class="
+          active === 'prompts'
+            ? 'border border-blue-600 bg-blue-100 text-blue-800 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-200'
+            : 'border border-transparent bg-transparent'
+        "
+        @click="active = 'prompts'"
+      >
+        Prompts
+      </button>
     </aside>
 
     <main class="flex min-h-0 min-w-0 flex-1 flex-col">
       <ChatPage v-if="active === 'chat'" />
-      <DocumentsPage v-else />
+      <DocumentsPage v-else-if="active === 'documents'" />
+      <PromptsPage v-else />
     </main>
   </div>
 </template>
