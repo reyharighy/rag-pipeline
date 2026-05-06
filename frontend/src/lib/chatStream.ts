@@ -45,6 +45,10 @@ export function extractRationaleOrHint(data: unknown): string | null {
   if (data !== null && typeof data === 'object' && !Array.isArray(data)) {
     const keys = Object.keys(data as object)
 
+    if (keys.includes('refine_query')) {
+      return 'Refining the search query for retrieval…'
+    }
+
     if (keys.includes('get_relevant_docs')) {
       return 'Retrieving relevant documents from the knowledge base…'
     }
