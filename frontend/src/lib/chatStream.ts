@@ -242,7 +242,7 @@ export async function* streamChat(
         yield parsed
       }
     } catch {
-      /* ignore trailing garbage */
+      console.error('Failed to parse trailing garbage:', tail)
     }
   }
 }

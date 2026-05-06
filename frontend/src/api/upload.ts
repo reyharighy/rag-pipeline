@@ -71,7 +71,6 @@ export async function uploadDocument(file: File): Promise<{ file_name: string; m
   return res.json() as Promise<{ file_name: string; message: string }>
 }
 
-/** One or more files in a single request (`POST /upload/batch`). */
 export async function uploadDocuments(files: File[]): Promise<BatchUploadResponse> {
   if (!files.length) {
     throw new Error('No files selected')
