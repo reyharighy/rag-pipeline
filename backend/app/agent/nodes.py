@@ -1,54 +1,83 @@
-from typing import Any
+from typing import Any, cast
 
-from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.messages import BaseMessage
 from langchain_core.messages.system import SystemMessage
 from langgraph.runtime import Runtime
 
-from app.services import get_language_model, get_vector_db_service
+from app.services import get_language_model, get_vector_db_service, with_retry_exception
 
+from .composer import (
+    REFINE_SYSTEM_PROMPT,
+    RESPONSE_SYSTEM_PROMPT,
+    compose_last_human_message_for_node,
+)
 from .runtime import Context
+from .schemas import RefinedRetrievalQuery
 from .state import State
+
+
+def refine_query(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
+    system_message = SystemMessage(REFINE_SYSTEM_PROMPT.strip())
+    llm_input: list[BaseMessage] = [system_message]
+    llm_input.extend(runtime.context.history_messages)
+    current_user_message = state.get("messages", [])[-1]
+
+    last_message = compose_last_human_message_for_node(
+        content=cast(str, current_user_message.content),
+    )
+
+    llm_input.extend(last_message)
+
+    base_llm = get_language_model(
+        model="openai/gpt-oss-120b",
+        reasoning_format="parsed",
+        temperature=0,
+    )
+
+    llm = with_retry_exception(
+        base_llm.with_structured_output(
+            schema=RefinedRetrievalQuery,
+            method="json_schema",
+        )
+    )
+
+    lm_output = llm.invoke(llm_input)
+
+    return {"refined_query": cast(RefinedRetrievalQuery, lm_output).refined_query}
 
 
 def get_relevant_docs(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
     store = get_vector_db_service()
-    query = state["messages"][-1]
+    query_text = cast(str, state.get("refined_query") or "").strip()
 
-    relevant_docs = store.similarity_search(str(query.content))
+    if not query_text:
+        query_text = cast(str, state["messages"][-1].content)
+
+    relevant_docs = store.similarity_search(cast(str, query_text))
 
     return {"relevant_docs": relevant_docs}
 
 
 def response(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
-    system_message = SystemMessage(
-        "You are a helpful assistant. Use the conversation history when relevant. "
-        "The final user message may contain labeled sections: retrieved context "
-        "(for grounding) and the current request. Answer the current request, "
-        "using retrieved context when it applies. "
-        "Format every reply as Markdown (e.g. **bold**, lists, `inline code`, "
-        "## headings when helpful); plain paragraphs are fine. "
-        "Do not wrap the entire answer in a fenced code block unless you are "
-        "showing actual code."
-    )
-
+    system_message = SystemMessage(RESPONSE_SYSTEM_PROMPT.strip())
     llm_input: list[BaseMessage] = [system_message]
-    current_user_message = state["messages"][-1]
+    llm_input.extend(runtime.context.history_messages)
+    current_user_message = state.get("messages", [])[-1]
 
-    combined_user_content = (
-        "The following is a single user turn with two labeled parts.\n\n"
-        "--- Retrieved context ---\n"
-        f"{str(state['relevant_docs'])}\n\n"
-        "--- Current request ---\n"
-        f"{str(current_user_message.content)}"
+    last_message = compose_last_human_message_for_node(
+        content=cast(str, current_user_message.content),
+        relevant_docs=state.get("relevant_docs", None),
     )
 
-    user_turn = HumanMessage(content=combined_user_content)
-    llm_input.extend(runtime.context.history_messages)
-    llm_input.append(user_turn)
+    llm_input.extend(last_message)
 
-    llm = get_language_model(model="openai/gpt-oss-120b")
+    llm = with_retry_exception(
+        get_language_model(
+            model="openai/gpt-oss-120b",
+            temperature=1.0,
+        )
+    )
+
     response = llm.invoke(llm_input)
 
-    return {
-        "messages": response,
-    }
+    return {"messages": response}
