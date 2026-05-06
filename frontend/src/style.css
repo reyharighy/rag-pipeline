@@ -16,6 +16,20 @@
   animation: pulse-dot 1.2s ease-in-out infinite;
 }
 
+@keyframes health-dot-dim {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.42;
+  }
+}
+
+.health-dot-dim {
+  animation: health-dot-dim 3s ease-in-out infinite;
+}
+
 @layer base {
   *,
   *::before,
