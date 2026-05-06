@@ -3,23 +3,28 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import AppToast from './components/AppToast.vue'
 import ChatPage from './components/ChatPage.vue'
 import DocumentsPage from './components/DocumentsPage.vue'
+import SystemHealthBadge from './components/SystemHealthBadge.vue'
 import { startDocumentsJobsPolling, stopDocumentsJobsPolling } from './lib/documentsJobsStore'
+import { startSystemHealthPolling, stopSystemHealthPolling } from './lib/systemHealthStore'
 
 type NavKey = 'chat' | 'documents'
 const active = ref<NavKey>('chat')
 
 onMounted(() => {
   startDocumentsJobsPolling()
+  startSystemHealthPolling()
 })
 
 onUnmounted(() => {
   stopDocumentsJobsPolling()
+  stopSystemHealthPolling()
 })
 </script>
 
 <template>
   <div class="relative flex h-full min-h-0 w-full">
     <AppToast />
+    <SystemHealthBadge />
 
     <aside
       class="flex w-fit shrink-0 flex-col gap-2 px-4 border-r border-zinc-200 bg-white p-2 pt-3 dark:border-zinc-700 dark:bg-zinc-900"
