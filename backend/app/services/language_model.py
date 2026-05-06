@@ -1,10 +1,19 @@
+import os
 from typing import Literal, TypedDict, Unpack
 from langchain_groq import ChatGroq
 from groq import BadRequestError
 
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", None)
+
+if GROQ_API_KEY is None:
+    raise ValueError("'GROQ_API_KEY' is not found")
+
+_LLM_MODEL_RAW = os.getenv("LLM_MODEL", "openai/gpt-oss-20b").strip()
+LLM_MODEL = _LLM_MODEL_RAW or "openai/gpt-oss-20b"
+
 
 class ModelKwargs(TypedDict, total=False):
-    model: Literal["openai/gpt-oss-20b", "openai/gpt-oss-120b"]
+    model: str
     temperature: int | float
     max_tokens: int | None
     reasoning_format: Literal["parsed", "raw", "hidden"]
@@ -12,7 +21,7 @@ class ModelKwargs(TypedDict, total=False):
 
 
 def get_language_model(**kwargs: Unpack[ModelKwargs]):
-    model = kwargs.get("model", "openai/gpt-oss-20b")
+    model = kwargs.get("model", LLM_MODEL)
     temperature = float(kwargs.get("temperature", 0))
     max_tokens = kwargs.get("max_tokens", None)
     reasoning_format = kwargs.get("reasoning_format", "parsed")
