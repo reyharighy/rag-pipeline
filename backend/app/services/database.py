@@ -33,9 +33,9 @@ if VECTOR_EMBEDDING_DIMENSION <= 0:
 
 
 def database_url_for_psycopg(url: str) -> str:
-    for prefix in ("postgresql+psycopg://", "postgresql+asyncpg://"):
+    for prefix in ("postgresql+psycopg://"):
         if url.startswith(prefix):
-            return "postgresql://" + url[len(prefix) :]
+            return "postgresql://" + url[len(prefix):]
 
     return url
 
@@ -52,7 +52,7 @@ def get_db_engine():
     return PGEngine.from_connection_string(str(DATABASE_URL))
 
 
-def init_db():
+def init_tables_if_not_exists():
     try:
         PostgresChatMessageHistory.create_tables(
             db_conn, CHAT_MESSAGE_HISTORIES_TABLE_NAME
