@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 from typing import Any, Literal
 
@@ -13,6 +14,7 @@ from app.agent import get_initial_state, State, Context
 from app.services import get_chat_history_service
 
 router = APIRouter()
+logger = logging.getLogger("uvicorn.error")
 
 
 class ChatAgentRequest(BaseModel):
@@ -193,7 +195,14 @@ def chat_agent(request: Request, chat_agent_request: ChatAgentRequest):
     graph: CompiledStateGraph[State] = request.app.state.graph
     session_id = _resolve_session_id(chat_agent_request.session_id)
     graph_state = get_initial_state(chat_agent_request.chat_input)
-    graph_context = Context()
+
+    try:
+        prior_messages = get_chat_history_service(session_id).get_messages()
+    except Exception:
+        logger.exception("Failed to load chat history for session %s", session_id)
+        prior_messages = []
+
+    graph_context = Context(history_messages=prior_messages)
 
     def generator():
         payload = json.dumps({"type": "session", "data": {"session_id": session_id}})
