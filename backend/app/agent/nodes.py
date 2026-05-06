@@ -11,18 +11,20 @@ from app.services import (
     with_retry_exception,
 )
 
-from .composer import (
-    REFINE_SYSTEM_PROMPT,
-    RESPONSE_SYSTEM_PROMPT,
-    compose_last_human_message_for_node,
+from app.services.prompt_templates import (
+    REFINE_SYSTEM,
+    RESPONSE_SYSTEM,
+    get_template_body,
 )
+
+from .composer import compose_last_human_message_for_node
 from .runtime import Context
 from .schemas import RefinedRetrievalQuery
 from .state import State
 
 
 def refine_query(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
-    system_message = SystemMessage(REFINE_SYSTEM_PROMPT.strip())
+    system_message = SystemMessage(get_template_body(REFINE_SYSTEM).strip())
     llm_input: list[BaseMessage] = [system_message]
     llm_input.extend(runtime.context.history_messages)
     current_user_message = state.get("messages", [])[-1]
@@ -64,7 +66,7 @@ def get_relevant_docs(state: State, runtime: Runtime[Context]) -> dict[str, Any]
 
 
 def response(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
-    system_message = SystemMessage(RESPONSE_SYSTEM_PROMPT.strip())
+    system_message = SystemMessage(get_template_body(RESPONSE_SYSTEM).strip())
     llm_input: list[BaseMessage] = [system_message]
     llm_input.extend(runtime.context.history_messages)
     current_user_message = state.get("messages", [])[-1]

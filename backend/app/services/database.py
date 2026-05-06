@@ -110,6 +110,14 @@ def init_tables_if_not_exists():
                 f"Failed to create table '{VECTOR_STORE_TABLE_NAME}'"
             ) from e
 
+    from app.services.prompt_templates import (
+        init_prompt_templates_table,
+        seed_prompt_templates_if_needed,
+    )
+
+    init_prompt_templates_table()
+    seed_prompt_templates_if_needed()
+
 
 def get_chat_history_service(session_id: str) -> PostgresChatMessageHistory:
     return PostgresChatMessageHistory(
