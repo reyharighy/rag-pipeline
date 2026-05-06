@@ -4,7 +4,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from rq.job import Job
 
 from app.storage import STORAGE_DIR
-from app.services import file_embedding_queue, job_queue_conn
+from app.services import EMBED_JOB_RESULT_TTL, file_embedding_queue, job_queue_conn
 from app.workers import embed_file_and_store
 
 router = APIRouter()
@@ -41,6 +41,7 @@ def _enqueue_upload_job(file: UploadFile) -> dict:
         file.content_type,
         file_path.stat().st_size,
         job_timeout=JOB_TIMEOUT,
+        result_ttl=EMBED_JOB_RESULT_TTL,
     )
 
     return {"ok": True, "file_name": file.filename}

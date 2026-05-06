@@ -4,7 +4,7 @@ from .database import (
     get_chat_history_service,
 )
 from .embedding import get_embedding_service
-from .job_queue import file_embedding_queue, job_queue_conn
+from .job_queue import EMBED_JOB_RESULT_TTL, file_embedding_queue, job_queue_conn
 from .language_model import get_language_model, with_retry_exception
 
 __all__ = [
@@ -12,6 +12,7 @@ __all__ = [
     "get_vector_db_service",
     "get_chat_history_service",
     "get_embedding_service",
+    "EMBED_JOB_RESULT_TTL",
     "file_embedding_queue",
     "job_queue_conn",
     "get_language_model",
