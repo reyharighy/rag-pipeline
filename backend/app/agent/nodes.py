@@ -1,5 +1,6 @@
 from typing import Any
-from langchain_core.messages import AnyMessage, HumanMessage
+
+from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_core.messages.system import SystemMessage
 from langgraph.runtime import Runtime
 
@@ -19,12 +20,27 @@ def get_relevant_docs(state: State, runtime: Runtime[Context]) -> dict[str, Any]
 
 
 def response(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
-    system_prompt = "Based on the information below, answer the user question:\n"
-    context_prompt = state["relevant_docs"]
+    system_message = SystemMessage(
+        "You are a helpful assistant. Use the conversation history when relevant. "
+        "The final user message may contain labeled sections: retrieved context "
+        "(for grounding) and the current request. Answer the current request, "
+        "using retrieved context when it applies."
+    )
 
-    system_message = SystemMessage(system_prompt + str(context_prompt))
-    llm_input: list[AnyMessage] = [system_message]
-    llm_input.extend([HumanMessage(str(state["messages"][-1].content))])
+    llm_input: list[BaseMessage] = [system_message]
+    current_user_message = state["messages"][-1]
+
+    combined_user_content = (
+        "The following is a single user turn with two labeled parts.\n\n"
+        "--- Retrieved context ---\n"
+        f"{str(state['relevant_docs'])}\n\n"
+        "--- Current request ---\n"
+        f"{str(current_user_message.content)}"
+    )
+
+    user_turn = HumanMessage(content=combined_user_content)
+    llm_input.extend(runtime.context.history_messages)
+    llm_input.append(user_turn)
 
     llm = get_language_model(model="openai/gpt-oss-120b")
     response = llm.invoke(llm_input)
