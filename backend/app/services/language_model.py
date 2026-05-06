@@ -1,7 +1,9 @@
 import os
 from typing import Literal, TypedDict, Unpack
-from langchain_groq import ChatGroq
+
 from groq import BadRequestError
+from langchain_core.runnables import Runnable
+from langchain_groq import ChatGroq
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", None)
 
@@ -20,6 +22,10 @@ class ModelKwargs(TypedDict, total=False):
     reasoning_effort: Literal["low", "medium", "high"]
 
 
+def with_retry_exception(runnable: Runnable) -> Runnable:
+    return runnable.with_retry(retry_if_exception_type=(BadRequestError,))
+
+
 def get_language_model(**kwargs: Unpack[ModelKwargs]):
     model = kwargs.get("model", LLM_MODEL)
     temperature = float(kwargs.get("temperature", 0))
@@ -35,7 +41,5 @@ def get_language_model(**kwargs: Unpack[ModelKwargs]):
         reasoning_effort=reasoning_effort,
         timeout=None,
     )
-
-    llm = llm.with_retry(retry_if_exception_type=(BadRequestError,))
 
     return llm
