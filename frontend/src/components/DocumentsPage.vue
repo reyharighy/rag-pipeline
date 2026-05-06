@@ -7,6 +7,7 @@ import {
   type PipelineJobStatus,
 } from '../api/upload'
 import { documentsJobs as jobs, documentsJobsError as loadError, refreshDocumentsJobs } from '../lib/documentsJobsStore'
+import { formatDisplayTimestamp } from '../lib/formatDisplayTimestamp'
 import { pushToast } from '../lib/toast'
 
 type SortKey = 'name' | 'date'
@@ -192,27 +193,6 @@ function displayOrDash(value: string | number | undefined | null): string {
 
   return String(value)
 }
-
-function formatJobTimestamp(iso: string | null | undefined): string {
-  if (iso == null || String(iso).trim() === '') return '—'
-
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return '—'
-
-  const datePart = new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(d)
-
-  const timePart = new Intl.DateTimeFormat('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(d)
-
-  return `${datePart} at ${timePart}`
-}
 </script>
 
 <template>
@@ -352,9 +332,9 @@ function formatJobTimestamp(iso: string | null | undefined): string {
               <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Job</h3>
               <dl class="grid grid-cols-[minmax(7rem,10rem)_1fr] gap-x-4 gap-y-1.5 text-sm">
                 <dt class="m-0 font-semibold text-zinc-900 dark:text-zinc-100">Uploaded at</dt>
-                <dd class="m-0 text-zinc-600 dark:text-zinc-400">{{ formatJobTimestamp(job.job_metadata.enqueued_at) }}</dd>
+                <dd class="m-0 text-zinc-600 dark:text-zinc-400">{{ formatDisplayTimestamp(job.job_metadata.enqueued_at) }}</dd>
                 <dt class="m-0 font-semibold text-zinc-900 dark:text-zinc-100">Stored at</dt>
-                <dd class="m-0 text-zinc-600 dark:text-zinc-400">{{ formatJobTimestamp(job.job_metadata.ended_at) }}</dd>
+                <dd class="m-0 text-zinc-600 dark:text-zinc-400">{{ formatDisplayTimestamp(job.job_metadata.ended_at) }}</dd>
                 <dt class="m-0 font-semibold text-zinc-900 dark:text-zinc-100">Outcome</dt>
                 <dd class="m-0 text-zinc-600 dark:text-zinc-400">
                   <template v-if="job.job_result?.result?.message">
