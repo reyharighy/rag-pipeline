@@ -1,6 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+from langchain_core.messages import BaseMessage
 
 
 @dataclass
 class Context:
-    pass
+    history_messages: list[BaseMessage] = field(default_factory=list)
