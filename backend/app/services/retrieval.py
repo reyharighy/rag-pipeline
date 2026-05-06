@@ -1,13 +1,6 @@
 import os
 
-_RAW = os.getenv("RETRIEVAL_TOP_K", None)
-
-if _RAW is None:
-    raise ValueError("RETRIEVAL_TOP_K is not set")
-
-_RAW = _RAW.strip()
-
-RETRIEVAL_TOP_K = int(_RAW)
+_RAW = os.getenv("RETRIEVAL_TOP_K", "8").strip()
 
 try:
     RETRIEVAL_TOP_K = int(_RAW)
