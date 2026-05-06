@@ -4,7 +4,12 @@ from langchain_core.messages import BaseMessage
 from langchain_core.messages.system import SystemMessage
 from langgraph.runtime import Runtime
 
-from app.services import get_language_model, get_vector_db_service, with_retry_exception
+from app.services import (
+    RETRIEVAL_TOP_K,
+    get_language_model,
+    get_vector_db_service,
+    with_retry_exception,
+)
 
 from .composer import (
     REFINE_SYSTEM_PROMPT,
@@ -53,7 +58,7 @@ def get_relevant_docs(state: State, runtime: Runtime[Context]) -> dict[str, Any]
     if not query_text:
         query_text = cast(str, state["messages"][-1].content)
 
-    relevant_docs = store.similarity_search(cast(str, query_text))
+    relevant_docs = store.similarity_search(cast(str, query_text), k=RETRIEVAL_TOP_K)
 
     return {"relevant_docs": relevant_docs}
 
