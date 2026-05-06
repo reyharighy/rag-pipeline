@@ -5,10 +5,10 @@ from sqlalchemy.exc import ProgrammingError
 
 from .embedding import get_embedding_service
 
-VECTORDB_URL = os.getenv("VECTORDB_URL", None)
+DATABASE_URL = os.getenv("DATABASE_URL", None)
 
-if VECTORDB_URL is None:
-    raise ValueError("'VECTORDB_URL' is not found")
+if DATABASE_URL is None:
+    raise ValueError("'DATABASE_URL' is not found")
 
 VECTOR_EMBEDDING_DIMENSION_RAW = os.getenv("VECTOR_EMBEDDING_DIMENSION")
 
@@ -29,7 +29,7 @@ if VECTOR_EMBEDDING_DIMENSION <= 0:
 
 @lru_cache(maxsize=1)
 def get_vector_db_engine():
-    return PGEngine.from_connection_string(str(VECTORDB_URL))
+    return PGEngine.from_connection_string(str(DATABASE_URL))
 
 
 def get_vector_db_service():

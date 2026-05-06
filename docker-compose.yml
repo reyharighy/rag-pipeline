@@ -1,10 +1,10 @@
 services:
-  redis:
+  job_queue:
     image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - job_queue_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -14,14 +14,14 @@ services:
     networks:
       - app-network
 
-  vectordb:
+  database:
     image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - vectordb_data:/var/lib/postgresql/data
+      - database_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
       interval: 5s
@@ -43,12 +43,12 @@ services:
     env_file:
       - ./.env
     environment:
-      - REDIS_URL=redis://redis:6379
-      - VECTORDB_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@vectordb:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://job_queue:6379
+      - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     depends_on:
-      redis:
+      job_queue:
         condition: service_healthy
-      vectordb:
+      database:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -70,12 +70,12 @@ services:
     env_file:
       - ./.env
     environment:
-      - REDIS_URL=redis://redis:6379
-      - VECTORDB_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@vectordb:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://job_queue:6379
+      - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     depends_on:
-      redis:
+      job_queue:
         condition: service_healthy
-      vectordb:
+      database:
         condition: service_healthy
       backend:
         condition: service_healthy
@@ -103,7 +103,7 @@ services:
     networks:
       - app-network
 
-  pgadmin:
+  database_admin:
     image: dpage/pgadmin4
     ports:
       - "80:80"
@@ -113,18 +113,18 @@ services:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
     depends_on:
-      vectordb:
+      database:
         condition: service_healthy
     restart: unless-stopped
     networks:
       - app-network
 
 volumes:
-  redis_data:
+  job_queue_data:
+    driver: local
+  database_data:
     driver: local
   uploads_data:
-    driver: local
-  vectordb_data:
     driver: local
   pgadmin_data:
     driver: local
