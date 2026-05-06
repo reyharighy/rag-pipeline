@@ -141,8 +141,7 @@ def chat_history(session_id: str = Query(..., min_length=1)):
         stored = history.get_messages()
     except Exception:
         raise HTTPException(
-            status_code=500,
-            detail="Failed to load chat history"
+            status_code=500, detail="Failed to load chat history"
         ) from None
 
     return {"messages": _history_messages_for_api(stored)}

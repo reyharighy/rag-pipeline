@@ -61,7 +61,7 @@ def _is_duplicate_table_error(exc: BaseException) -> bool:
 def _database_url_for_psycopg(url: str) -> str:
     for prefix in ("postgresql+psycopg://",):
         if url.startswith(prefix):
-            return f"postgresql://{url[len(prefix):]}"
+            return f"postgresql://{url[len(prefix) :]}"
 
     return url
 
