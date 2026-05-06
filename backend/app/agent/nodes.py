@@ -24,7 +24,11 @@ def response(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
         "You are a helpful assistant. Use the conversation history when relevant. "
         "The final user message may contain labeled sections: retrieved context "
         "(for grounding) and the current request. Answer the current request, "
-        "using retrieved context when it applies."
+        "using retrieved context when it applies. "
+        "Format every reply as Markdown (e.g. **bold**, lists, `inline code`, "
+        "## headings when helpful); plain paragraphs are fine. "
+        "Do not wrap the entire answer in a fenced code block unless you are "
+        "showing actual code."
     )
 
     llm_input: list[BaseMessage] = [system_message]
