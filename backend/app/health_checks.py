@@ -56,7 +56,9 @@ def _parse_provider_cache_ttl_seconds() -> float:
     return max(0.0, v)
 
 
-def _annotate_model_probe(base: ModelStatus, probe: Literal["live", "cached"], iso: str) -> ModelStatus:
+def _annotate_model_probe(
+    base: ModelStatus, probe: Literal["live", "cached"], iso: str
+) -> ModelStatus:
     out: ModelStatus = {**base, "probe": probe, "last_live_probe_at": iso}
     return out
 
@@ -74,11 +76,7 @@ def _count_storage_files(root: Path) -> int:
     """Count regular files in storage; exclude package __init__.py (not an upload)."""
     if not root.is_dir():
         return 0
-    return sum(
-        1
-        for p in root.iterdir()
-        if p.is_file() and p.name != "__init__.py"
-    )
+    return sum(1 for p in root.iterdir() if p.is_file() and p.name != "__init__.py")
 
 
 def check_embedding_model() -> ModelStatus:
@@ -124,12 +122,12 @@ def check_llm_model() -> ModelStatus:
 
 
 def check_vector_db() -> VectorDbStatus:
-    url = os.getenv("VECTORDB_URL")
+    url = os.getenv("DATABASE_URL")
 
     if not url or not str(url).strip():
         return {
             "status": "error",
-            "detail": "VECTORDB_URL is not set",
+            "detail": "DATABASE_URL is not set",
             "name": "pgvector",
         }
 
@@ -153,9 +151,9 @@ def check_vector_db() -> VectorDbStatus:
 def check_worker() -> WorkerStatus:
     from redis import Redis
 
-    url = os.getenv("REDIS_URL")
+    REDIS_URL = os.getenv("REDIS_URL")
 
-    if not url or not str(url).strip():
+    if not REDIS_URL or not str(REDIS_URL).strip():
         return {
             "status": "error",
             "detail": "REDIS_URL is not set",
@@ -166,7 +164,7 @@ def check_worker() -> WorkerStatus:
 
     try:
         client = Redis.from_url(
-            str(url),
+            str(REDIS_URL),
             socket_connect_timeout=2,
             socket_timeout=2,
         )
@@ -225,7 +223,11 @@ def check_storage() -> StorageStatus:
 
 def get_cached_provider_model_statuses() -> tuple[ModelStatus, ModelStatus]:
     """Return embedding + LLM health; reuse live probe results until TTL expires."""
-    global _cached_embedding, _cached_llm, _cached_provider_probe_iso, _provider_cache_expires_at
+    global \
+        _cached_embedding, \
+        _cached_llm, \
+        _cached_provider_probe_iso, \
+        _provider_cache_expires_at
 
     ttl = _parse_provider_cache_ttl_seconds()
     iso_now = datetime.now(timezone.utc).isoformat()
@@ -234,7 +236,9 @@ def get_cached_provider_model_statuses() -> tuple[ModelStatus, ModelStatus]:
         emb = check_embedding_model()
         llm = check_llm_model()
 
-        return _annotate_model_probe(emb, "live", iso_now), _annotate_model_probe(llm, "live", iso_now)
+        return _annotate_model_probe(emb, "live", iso_now), _annotate_model_probe(
+            llm, "live", iso_now
+        )
 
     now = time.monotonic()
 
