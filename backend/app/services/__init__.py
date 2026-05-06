@@ -5,7 +5,7 @@ from .database import (
 )
 from .embedding import get_embedding_service
 from .job_queue import file_embedding_queue, job_queue_conn
-from .language_model import get_language_model
+from .language_model import get_language_model, with_retry_exception
 
 __all__ = [
     "init_tables_if_not_exists",
@@ -15,4 +15,5 @@ __all__ = [
     "file_embedding_queue",
     "job_queue_conn",
     "get_language_model",
+    "with_retry_exception",
 ]

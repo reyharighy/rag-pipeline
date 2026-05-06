@@ -1,6 +1,6 @@
 from langgraph.graph import StateGraph, START, END
 
-from .nodes import get_relevant_docs, response
+from .nodes import refine_query, get_relevant_docs, response
 from .runtime import Context
 from .state import State
 
@@ -14,6 +14,11 @@ class Graph:
 
     def build_graph(self):
         self.graph_builder.add_node(
+            node="refine_query",
+            action=refine_query,
+        )
+
+        self.graph_builder.add_node(
             node="get_relevant_docs",
             action=get_relevant_docs,
         )
@@ -23,7 +28,12 @@ class Graph:
             action=response,
         )
 
-        self.graph_builder.add_edge(start_key=START, end_key="get_relevant_docs")
+        self.graph_builder.add_edge(start_key=START, end_key="refine_query")
+
+        self.graph_builder.add_edge(
+            start_key="refine_query", end_key="get_relevant_docs"
+        )
+
         self.graph_builder.add_edge(start_key="get_relevant_docs", end_key="response")
 
         self.graph_builder.add_edge(
