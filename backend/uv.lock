@@ -212,7 +212,7 @@ wheels = [
 [[package]]
 name = "backend"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "datasets" },
     { name = "fastapi" },
@@ -223,6 +223,7 @@ dependencies = [
     { name = "langchain-text-splitters" },
     { name = "langgraph" },
     { name = "pymupdf4llm" },
+    { name = "python-dotenv" },
     { name = "python-multipart" },
     { name = "ragas" },
     { name = "redis" },
@@ -246,6 +247,7 @@ requires-dist = [
     { name = "langchain-text-splitters", specifier = ">=1.1.2" },
     { name = "langgraph", specifier = ">=1.1.10" },
     { name = "pymupdf4llm", specifier = ">=1.27.2.3" },
+    { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "python-multipart", specifier = ">=0.0.27" },
     { name = "ragas", specifier = ">=0.4.3" },
     { name = "redis", specifier = ">=7.4.0" },
