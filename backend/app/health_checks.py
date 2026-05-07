@@ -47,8 +47,8 @@ _cached_provider_probe_iso: str | None = None
 
 
 def _parse_provider_cache_ttl_seconds() -> float:
-    """Seconds between live Cohere/Groq probes. 0 = always probe (no cache)."""
     raw = os.getenv("HEALTH_PROVIDER_CACHE_TTL_SECONDS", "300").strip()
+
     try:
         v = float(raw)
     except ValueError:
@@ -73,9 +73,9 @@ def _truncate(msg: str, max_len: int = 240) -> str:
 
 
 def _count_storage_files(root: Path) -> int:
-    """Count regular files in storage; exclude package __init__.py (not an upload)."""
     if not root.is_dir():
         return 0
+
     return sum(1 for p in root.iterdir() if p.is_file() and p.name != "__init__.py")
 
 
@@ -226,7 +226,6 @@ def check_storage() -> StorageStatus:
 
 
 def get_cached_provider_model_statuses() -> tuple[ModelStatus, ModelStatus]:
-    """Return embedding + LLM health; reuse live probe results until TTL expires."""
     global \
         _cached_embedding, \
         _cached_llm, \
