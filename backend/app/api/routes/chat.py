@@ -71,7 +71,6 @@ def _assistant_content_from_response_update(update: dict[str, Any]) -> str | Non
 
 
 def _history_messages_for_api(messages: list[BaseMessage]) -> list[dict[str, str]]:
-    """Serialize LangChain messages to JSON for the chat UI (human / ai only)."""
     out: list[dict[str, str]] = []
 
     for m in messages:

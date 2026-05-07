@@ -1,5 +1,3 @@
-"""Plain-text helpers for LangChain messages and documents (shared by API and eval)."""
-
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
@@ -14,7 +12,6 @@ def _flatten_langchain_message_content(
     *,
     kind: Literal["human", "ai"],
 ) -> str | None:
-    """Normalize LangChain message content (string or multimodal blocks) to text."""
     if isinstance(content, str):
         return content
 
@@ -52,7 +49,6 @@ def content_from_ai_message(msg: AIMessage) -> str | None:
 
 
 def last_assistant_text(messages: Sequence[BaseMessage]) -> str:
-    """Return text from the last AIMessage, stripped. Raises if none."""
     for msg in reversed(messages):
         if isinstance(msg, AIMessage):
             return (content_from_ai_message(msg) or "").strip()
@@ -61,7 +57,6 @@ def last_assistant_text(messages: Sequence[BaseMessage]) -> str:
 
 
 def texts_from_documents(docs: Iterable[Document] | None) -> list[str]:
-    """Non-empty stripped page_content strings from LangChain documents."""
     if not docs:
         return []
 
