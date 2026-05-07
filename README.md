@@ -34,7 +34,7 @@ Aplikasi **Retrieval-Augmented Generation (RAG)**: unggah dokumen, **chunks** di
 
 Backend bersifat **API-first** dan dapat diuji lewat UI lokal atau klien HTTP lain; dokumentasi interaktif tersedia di `/docs`.
 
-**Isi dokumen ini** memenuhi kebutuhan dokumentasi teknis wajib (arsitektur, alur data, pipeline RAG, strategi chunking, alasan pilihan teknologi, cara menjalankan, trade-off, keterbatasan, rencana pengembangan, serta logging/observability).
+**Isi dokumen ini** memenuhi kebutuhan dokumentasi teknis wajib.
 
 ---
 
@@ -124,6 +124,7 @@ Ringkasnya: **unggah** mengisi basis pengetahuan secara **asinkron**; **chat** m
 │   └── app/
 │       ├── agent/           # LangGraph: refine → retrieve → response
 │       ├── api/             # FastAPI (chat, upload, health)
+│       ├── eval/            # CLI evaluasi RAG (RAGAS)
 │       ├── rag/             # Ekstraksi, chunking, transformasi dokumen
 │       ├── services/        # Embedding, LLM, DB, antrean
 │       └── workers/         # RQ: embedding file → pgvector
@@ -230,6 +231,20 @@ curl -X POST 'http://localhost:8000/chat' \
 
 (Sesuaikan payload dengan skema aktual di `/docs` — misalnya streaming memakai client yang mendukung SSE.)
 
+### Evaluasi RAG (RAGAS)
+
+Setelah dokumen terindeks di pgvector, jalankan perintah eval dari **direktori `backend/`** setelah `uv sync` agar paket `app` terpasang ke venv proyek. Variabel seperti **`COHERE_API_KEY`**, **`GROQ_API_KEY`**, dan Postgres harus terset — sama seperti layanan API. CLI memuat `.env` dari beberapa lokasi nilai yang sudah diekspor di shell tidak ditimpa.
+
+Dari dalam **`backend/`**:
+
+```bash
+uv run python -m app.eval.ragas_cli --output app/eval/ragas_report.json
+```
+
+(Bawaan `--questions` adalah `app/eval/questions.sample.json` di samping modul CLI; override dengan `--questions path/ke/file.json` jika perlu.)
+
+Salin `app/eval/questions.sample.json` dan isi daftar `questions` dengan pertanyaan uji Anda. Keluaran konsol memuat agregat **faithfulness** dan **answer_relevancy**; berkas `--output` menyimpan skor per baris dan ringkasan.
+
 ---
 
 ## Trade-off teknis
@@ -256,7 +271,7 @@ curl -X POST 'http://localhost:8000/chat' \
 
 ## Rencana pengembangan ke depan
 
-- Evaluasi RAG (mis. **RAGAS** atau evaluasi manual terstruktur) dan penyetelan **top-k** / reranking.
+- Evaluasi RAG lanjutan (dataset lebih besar, metrik tambahan, atau laporan manual terstruktur) dan penyetelan **top-k** / reranking. CLI **RAGAS** dasar sudah tersedia (subbagian **Evaluasi RAG (RAGAS)**).
 - Penyaringan retrieval berdasarkan **metadata** (mis. hanya dokumen yang diunggah dalam sesi tertentu).
 - Manajemen prompt eksternal (file/DB) dan opsi **routing model** untuk jenis pertanyaan berbeda.
 - Observability terpusat (metrik, trace ID permintaan) di luar LangSmith opsional.
