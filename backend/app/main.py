@@ -4,16 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.agent import Graph
 from app.api import routers
+from app.config import get_settings
 from app.services import init_tables_if_not_exists
-
-
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://[::1]:5173",
-]
-
-DEV_ORIGIN_REGEX = r"https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$"
 
 
 @asynccontextmanager
@@ -26,10 +18,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+_middleware_settings = get_settings().middleware
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=DEV_ORIGIN_REGEX,
+    allow_origins=_middleware_settings.allowed_origins,
+    allow_origin_regex=_middleware_settings.dev_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
