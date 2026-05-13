@@ -1,8 +1,10 @@
 from functools import lru_cache
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
+from pydantic import Field, computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from .job_queue import JobQueueConfig
 from .middleware import MiddlewareConfig
 
 _BACKEND_ROOT = Path(__file__).resolve().parent.parent
@@ -17,6 +19,11 @@ class Settings(BaseSettings):
     )
 
     middleware: MiddlewareConfig = Field(default_factory=MiddlewareConfig)
+
+    @computed_field
+    @property
+    def job_queue(self) -> JobQueueConfig:
+        return JobQueueConfig()
 
 
 @lru_cache
