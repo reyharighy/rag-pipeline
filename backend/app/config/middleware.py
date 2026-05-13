@@ -8,6 +8,7 @@ def _default_cors_allowed_origins() -> list[str]:
         "http://[::1]:5173",
     ]
 
+
 def _default_dev_origin_regex() -> str:
     return r"https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$"
 
