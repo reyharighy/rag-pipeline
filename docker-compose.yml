@@ -4,7 +4,7 @@ services:
     ports:
       - "6379:6379"
     environment:
-      - REDIS_URL=${JOB_QUEUE_URL}
+      REDIS_URL: ${JOB_QUEUE_URL}
     volumes:
       - job_queue_data:/data
     healthcheck:
@@ -12,6 +12,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 10s
     restart: unless-stopped
     networks:
       - app-network
@@ -48,8 +49,8 @@ services:
     env_file:
       - ./.env
     environment:
-      - REDIS_URL=redis://job_queue:6379
-      - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      REDIS_URL: ${JOB_QUEUE_URL}
+      DATABASE_URL: postgresql+psycopg://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME}
     depends_on:
       job_queue:
         condition: service_healthy
@@ -60,6 +61,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
+      start_period: 10s
     restart: unless-stopped
     networks:
       - app-network
@@ -75,8 +77,8 @@ services:
     env_file:
       - ./.env
     environment:
-      - REDIS_URL=redis://job_queue:6379
-      - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+      REDIS_URL: ${JOB_QUEUE_URL}
+      DATABASE_URL: postgresql+psycopg://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME}
     depends_on:
       job_queue:
         condition: service_healthy
@@ -100,7 +102,7 @@ services:
     env_file:
       - ./.env
     environment:
-      - VITE_VECTOR_EMBEDDING_DIMENSION=${VECTOR_EMBEDDING_DIMENSION}
+      VITE_VECTOR_EMBEDDING_DIMENSION: ${VECTOR_EMBEDDING_DIMENSION}
     depends_on:
       backend:
         condition: service_healthy
@@ -115,8 +117,8 @@ services:
     volumes:
       - 'pgadmin_data:/var/lib/pgadmin'
     environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: ${DATABASE_ADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DATABASE_ADMIN_PASSWORD}
     depends_on:
       database:
         condition: service_healthy
