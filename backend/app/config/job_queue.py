@@ -1,43 +1,44 @@
 import os
-from typing import Annotated, Any
+from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator, Field
 
 
-def default_redis_url() -> str:
-    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+def parse_url(value: str) -> str:
+    if value.strip() == "":
+        raise ValueError("JOB_QUEUE_URL is not set")
 
-    if redis_url is None:
-        raise ValueError("REDIS_URL is not set")
-
-    return redis_url
+    return value
 
 
-def parse_embed_job_result_ttl(value: Any) -> int:
-    if value is None:
+def parse_result_ttl(value: str) -> int:
+    if value.strip() == "" or value.strip() == "-1":
         return -1
 
-    if isinstance(value, int):
-        return value
+    try:
+        int_value = int(value)
 
-    raw = str(value).strip().lower()
+        if int_value < 0:
+            raise ValueError("JOB_QUEUE_RESULT_TTL must be a positive integer")
 
-    if raw in ("", "-1", "forever"):
-        return -1
+        return int_value
+    except ValueError:
+        raise ValueError("JOB_QUEUE_RESULT_TTL must be an integer")
 
-    return int(raw)
 
-
-EmbedJobResultTtl = Annotated[int, BeforeValidator(parse_embed_job_result_ttl)]
+JobQueueURL = Annotated[str, BeforeValidator(parse_url)]
+JobQueueResultTtl = Annotated[int, BeforeValidator(parse_result_ttl)]
 
 
 class JobQueueConfig(BaseModel):
-    redis_url: str = Field(
-        default_factory=default_redis_url,
-        description="Redis URL for RQ (env: REDIS_URL).",
+    url: JobQueueURL = Field(
+        default_factory=lambda: os.getenv("JOB_QUEUE_URL", ""),
+        validate_default=True,
+        description="URL of the job queue service",
     )
 
-    embed_job_result_ttl: EmbedJobResultTtl = Field(
-        default=-1,
-        description="RQ job result TTL in seconds (env: EMBED_JOB_RESULT_TTL).",
+    result_ttl: JobQueueResultTtl = Field(
+        default_factory=lambda: os.getenv("JOB_QUEUE_RESULT_TTL", ""),
+        validate_default=True,
+        description="TTL of the job queue result in seconds (-1 = forever)",
     )
