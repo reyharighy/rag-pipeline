@@ -4,13 +4,15 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from rq.job import Job
 
 from app.storage import STORAGE_DIR
-from app.services import EMBED_JOB_RESULT_TTL, file_embedding_queue, job_queue_conn
+from app.services import file_embedding_queue, job_queue_conn
 from app.workers import embed_file_and_store
+from app.config import get_settings
+
+_job_queue_cfg = get_settings().job_queue
 
 router = APIRouter()
 
 ALLOWED_TYPES = ["application/pdf", "text/plain"]
-JOB_TIMEOUT = 5 * 60
 
 
 def check_file_compatibility(file: UploadFile):
@@ -40,8 +42,7 @@ def _enqueue_upload_job(file: UploadFile) -> dict:
         file.filename,
         file.content_type,
         file_path.stat().st_size,
-        job_timeout=JOB_TIMEOUT,
-        result_ttl=EMBED_JOB_RESULT_TTL,
+        result_ttl=_job_queue_cfg.result_ttl,
     )
 
     return {"ok": True, "file_name": file.filename}
