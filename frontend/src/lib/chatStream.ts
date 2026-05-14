@@ -137,7 +137,7 @@ export function extractAssistantTextFromUpdateData(data: unknown): string | null
   return null
 }
 
-const CHAT_SESSION_STORAGE_KEY = 'ezee-chat-session-id'
+const CHAT_SESSION_STORAGE_KEY = 'chat-session-id'
 
 export function getStoredChatSessionId(): string | null {
   if (typeof localStorage === 'undefined') {
