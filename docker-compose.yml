@@ -50,7 +50,6 @@ services:
       - ./.env
     environment:
       REDIS_URL: ${JOB_QUEUE_URL}
-      DATABASE_URL: postgresql+psycopg://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME}
     depends_on:
       job_queue:
         condition: service_healthy
@@ -78,7 +77,6 @@ services:
       - ./.env
     environment:
       REDIS_URL: ${JOB_QUEUE_URL}
-      DATABASE_URL: postgresql+psycopg://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME}
     depends_on:
       job_queue:
         condition: service_healthy
