@@ -8,7 +8,7 @@ from .embedding import get_embedding_service
 from app.config import get_settings
 
 logger = logging.getLogger("uvicorn.error")
-_cfg = get_settings().database
+_database_cfg = get_settings().database
 
 VECTOR_EMBEDDING_DIMENSION_RAW = os.getenv("VECTOR_EMBEDDING_DIMENSION")
 
@@ -60,7 +60,7 @@ VECTOR_STORE_TABLE_NAME = "documents"
 def init_tables_if_not_exists():
     try:
         PostgresChatMessageHistory.create_tables(
-            _cfg.psycopg_connection,
+            _database_cfg.psycopg_connection,
             CHAT_MESSAGE_HISTORIES_TABLE_NAME,
         )
 
@@ -74,7 +74,7 @@ def init_tables_if_not_exists():
         )
 
     try:
-        _cfg.engine.init_vectorstore_table(
+        _database_cfg.engine.init_vectorstore_table(
             table_name=VECTOR_STORE_TABLE_NAME,
             vector_size=VECTOR_EMBEDDING_DIMENSION,
         )
@@ -104,13 +104,13 @@ def get_chat_history_service(session_id: str) -> PostgresChatMessageHistory:
     return PostgresChatMessageHistory(
         CHAT_MESSAGE_HISTORIES_TABLE_NAME,
         session_id,
-        sync_connection=_cfg.psycopg_connection,
+        sync_connection=_database_cfg.psycopg_connection,
     )
 
 
 def get_vector_db_service():
     return PGVectorStore.create_sync(
-        engine=_cfg.engine,
+        engine=_database_cfg.engine,
         table_name=VECTOR_STORE_TABLE_NAME,
         embedding_service=get_embedding_service(),
     )
