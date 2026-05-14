@@ -1,0 +1,4 @@
+Latest user message:
+{{question}}
+
+Produce the structured output with a non-empty refined_query.

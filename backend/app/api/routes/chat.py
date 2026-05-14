@@ -1,7 +1,7 @@
 import json
 import logging
 import uuid
-from typing import Any, Literal
+from typing import Any
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langgraph.graph.state import CompiledStateGraph
@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from app.agent import get_initial_state, State, Context
 from app.services import get_chat_history_service
+from app.utils import content_from_ai_message, text_from_human_message
 
 router = APIRouter()
 logger = logging.getLogger("uvicorn.error")
@@ -34,48 +35,6 @@ def _resolve_session_id(raw: str | None) -> str:
     return str(uuid.uuid4())
 
 
-def _flatten_langchain_message_content(
-    content: Any,
-    *,
-    kind: Literal["human", "ai"],
-) -> str | None:
-    """Normalize LangChain message content (plain string or multimodal blocks) to text."""
-    if isinstance(content, str):
-        return content
-
-    if isinstance(content, list):
-        parts: list[str] = []
-
-        for block in content:
-            if isinstance(block, str):
-                parts.append(block)
-            elif isinstance(block, dict) and block.get("type") == "text":
-                t = block.get("text")
-
-                if isinstance(t, str):
-                    parts.append(t)
-
-        if not parts:
-            return None if kind == "ai" else ""
-
-        return "".join(parts)
-
-    if content is None:
-        return None if kind == "ai" else ""
-
-    return str(content)
-
-
-def _text_from_human(msg: HumanMessage) -> str:
-    out = _flatten_langchain_message_content(msg.content, kind="human")
-
-    return "" if out is None else out
-
-
-def _content_from_ai_message(msg: AIMessage) -> str | None:
-    return _flatten_langchain_message_content(msg.content, kind="ai")
-
-
 def _assistant_content_from_response_update(update: dict[str, Any]) -> str | None:
     payload = update.get("response")
 
@@ -88,12 +47,12 @@ def _assistant_content_from_response_update(update: dict[str, Any]) -> str | Non
         return None
 
     if isinstance(msg, AIMessage):
-        return _content_from_ai_message(msg)
+        return content_from_ai_message(msg)
 
     if isinstance(msg, list):
         for item in reversed(msg):
             if isinstance(item, AIMessage):
-                return _content_from_ai_message(item)
+                return content_from_ai_message(item)
             if isinstance(item, dict) and item.get("type") == "ai":
                 c = item.get("content")
 
@@ -112,17 +71,16 @@ def _assistant_content_from_response_update(update: dict[str, Any]) -> str | Non
 
 
 def _history_messages_for_api(messages: list[BaseMessage]) -> list[dict[str, str]]:
-    """Serialize LangChain messages to JSON for the chat UI (human / ai only)."""
     out: list[dict[str, str]] = []
 
     for m in messages:
         if isinstance(m, HumanMessage):
-            out.append({"role": "user", "content": _text_from_human(m)})
+            out.append({"role": "user", "content": text_from_human_message(m)})
         elif isinstance(m, AIMessage):
             out.append(
                 {
                     "role": "assistant",
-                    "content": _content_from_ai_message(m) or "",
+                    "content": content_from_ai_message(m) or "",
                 }
             )
 
@@ -141,8 +99,7 @@ def chat_history(session_id: str = Query(..., min_length=1)):
         stored = history.get_messages()
     except Exception:
         raise HTTPException(
-            status_code=500,
-            detail="Failed to load chat history"
+            status_code=500, detail="Failed to load chat history"
         ) from None
 
     return {"messages": _history_messages_for_api(stored)}

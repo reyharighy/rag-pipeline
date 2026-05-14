@@ -3,6 +3,8 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    environment:
+      REDIS_URL: ${JOB_QUEUE_URL}
     volumes:
       - job_queue_data:/data
     healthcheck:
@@ -10,23 +12,27 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 10s
     restart: unless-stopped
     networks:
       - app-network
 
   database:
     image: pgvector/pgvector:pg16
+    ports:
+      - "5432:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
     volumes:
       - database_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      test: ["CMD", "pg_isready", "-U", "${DATABASE_USERNAME}", "-d", "${DATABASE_NAME}", "-p", "5432"]
       interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 10s
     networks:
       - app-network
 
@@ -42,9 +48,6 @@ services:
       - uploads_data:/app/app/storage
     env_file:
       - ./.env
-    environment:
-      - REDIS_URL=redis://job_queue:6379
-      - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     depends_on:
       job_queue:
         condition: service_healthy
@@ -55,6 +58,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
+      start_period: 10s
     restart: unless-stopped
     networks:
       - app-network
@@ -69,9 +73,6 @@ services:
       - uploads_data:/app/app/storage
     env_file:
       - ./.env
-    environment:
-      - REDIS_URL=redis://job_queue:6379
-      - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     depends_on:
       job_queue:
         condition: service_healthy
@@ -95,7 +96,7 @@ services:
     env_file:
       - ./.env
     environment:
-      - VITE_VECTOR_EMBEDDING_DIMENSION=${VECTOR_EMBEDDING_DIMENSION}
+      VITE_VECTOR_EMBEDDING_DIMENSION: ${VECTOR_EMBEDDING_DIMENSION}
     depends_on:
       backend:
         condition: service_healthy
@@ -110,8 +111,8 @@ services:
     volumes:
       - 'pgadmin_data:/var/lib/pgadmin'
     environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: ${DATABASE_ADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DATABASE_ADMIN_PASSWORD}
     depends_on:
       database:
         condition: service_healthy

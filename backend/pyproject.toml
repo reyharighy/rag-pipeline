@@ -1,8 +1,16 @@
+[build-system]
+requires = ["hatchling>=1.18.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
 [project]
 name = "backend"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "datasets>=4.8.5",
     "fastapi>=0.136.1",
     "langchain>=1.2.17",
     "langchain-cohere>=0.5.1",
@@ -11,7 +19,10 @@ dependencies = [
     "langchain-text-splitters>=1.1.2",
     "langgraph>=1.1.10",
     "pymupdf4llm>=1.27.2.3",
+    "pydantic-settings>=2.0",
+    "python-dotenv>=1.2.2",
     "python-multipart>=0.0.27",
+    "ragas>=0.4.3",
     "redis>=7.4.0",
     "rq>=2.8.0",
     "uvicorn>=0.46.0",
@@ -21,3 +32,6 @@ dependencies = [
 dev = [
     "ruff>=0.15.12",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"app/eval/ragas_cli.py" = ["E402"]

@@ -1,0 +1,7 @@
+The following is a single user turn with two labeled parts.
+
+--- Retrieved context ---
+{{context}}
+
+--- Current request ---
+{{question}}

@@ -18,4 +18,4 @@ FROM base AS development
 CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 FROM base AS worker
-CMD ["uv", "run", "rq", "worker", "file_embedding_queue", "--with-scheduler"]
+CMD ["sh", "-c", "uv run rq worker file_embedding_queue --with-scheduler --url $JOB_QUEUE_URL"]

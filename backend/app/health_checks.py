@@ -12,6 +12,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.pool import NullPool
 
 from app.storage import STORAGE_DIR
+from app.config import get_settings
 
 
 class ComponentStatus(TypedDict):
@@ -45,10 +46,13 @@ _cached_embedding: ModelStatus | None = None
 _cached_llm: ModelStatus | None = None
 _cached_provider_probe_iso: str | None = None
 
+_database_cfg = get_settings().database
+_job_queue_cfg = get_settings().job_queue
+
 
 def _parse_provider_cache_ttl_seconds() -> float:
-    """Seconds between live Cohere/Groq probes. 0 = always probe (no cache)."""
     raw = os.getenv("HEALTH_PROVIDER_CACHE_TTL_SECONDS", "300").strip()
+
     try:
         v = float(raw)
     except ValueError:
@@ -73,9 +77,9 @@ def _truncate(msg: str, max_len: int = 240) -> str:
 
 
 def _count_storage_files(root: Path) -> int:
-    """Count regular files in storage; exclude package __init__.py (not an upload)."""
     if not root.is_dir():
         return 0
+
     return sum(1 for p in root.iterdir() if p.is_file() and p.name != "__init__.py")
 
 
@@ -100,12 +104,16 @@ def check_embedding_model() -> ModelStatus:
 
 
 def check_llm_model() -> ModelStatus:
-    from app.services.language_model import LLM_MODEL, get_language_model
+    from app.services.language_model import (
+        LLM_MODEL,
+        get_language_model,
+        with_retry_exception,
+    )
 
     try:
         from langchain_core.messages import HumanMessage
 
-        llm = get_language_model(max_tokens=8)
+        llm = with_retry_exception(get_language_model(max_tokens=8))
         llm.invoke([HumanMessage(content="ping")])
     except Exception as e:  # noqa: BLE001
         return {
@@ -122,16 +130,7 @@ def check_llm_model() -> ModelStatus:
 
 
 def check_vector_db() -> VectorDbStatus:
-    url = os.getenv("DATABASE_URL")
-
-    if not url or not str(url).strip():
-        return {
-            "status": "error",
-            "detail": "DATABASE_URL is not set",
-            "name": "pgvector",
-        }
-
-    engine = create_engine(url, poolclass=NullPool)
+    engine = create_engine(_database_cfg.url, poolclass=NullPool)
 
     try:
         with engine.connect() as conn:
@@ -151,20 +150,11 @@ def check_vector_db() -> VectorDbStatus:
 def check_worker() -> WorkerStatus:
     from redis import Redis
 
-    REDIS_URL = os.getenv("REDIS_URL")
-
-    if not REDIS_URL or not str(REDIS_URL).strip():
-        return {
-            "status": "error",
-            "detail": "REDIS_URL is not set",
-            "name": "redis-queue",
-        }
-
     client: Redis | None = None
 
     try:
         client = Redis.from_url(
-            str(REDIS_URL),
+            _job_queue_cfg.url,
             socket_connect_timeout=2,
             socket_timeout=2,
         )
@@ -222,7 +212,6 @@ def check_storage() -> StorageStatus:
 
 
 def get_cached_provider_model_statuses() -> tuple[ModelStatus, ModelStatus]:
-    """Return embedding + LLM health; reuse live probe results until TTL expires."""
     global \
         _cached_embedding, \
         _cached_llm, \
