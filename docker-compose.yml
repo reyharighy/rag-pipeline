@@ -48,8 +48,6 @@ services:
       - uploads_data:/app/app/storage
     env_file:
       - ./.env
-    environment:
-      REDIS_URL: ${JOB_QUEUE_URL}
     depends_on:
       job_queue:
         condition: service_healthy
