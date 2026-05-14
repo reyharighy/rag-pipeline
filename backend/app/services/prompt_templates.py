@@ -5,9 +5,10 @@ import re
 from typing import Final
 
 from app.prompts import PROMPTS_DEFAULTS_DIR
-from app.services.database import _db_conn
+from app.config import get_settings
 
 logger = logging.getLogger("uvicorn.error")
+_database_cfg = get_settings().database
 
 REFINE_SYSTEM: Final = "refine_system"
 RESPONSE_SYSTEM: Final = "response_system"
@@ -37,7 +38,7 @@ def _read_default_file(key: str) -> str:
 
 
 def init_prompt_templates_table() -> None:
-    with _db_conn.cursor() as cur:
+    with _database_cfg.psycopg_connection.cursor() as cur:
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS prompt_templates (
@@ -48,13 +49,13 @@ def init_prompt_templates_table() -> None:
             """
         )
 
-    _db_conn.commit()
+    _database_cfg.psycopg_connection.commit()
     logger.info("Prompt templates table is ready (CREATE IF NOT EXISTS).")
 
 
 def seed_prompt_templates_if_needed() -> None:
     for key in TEMPLATE_KEYS:
-        with _db_conn.cursor() as cur:
+        with _database_cfg.psycopg_connection.cursor() as cur:
             cur.execute(
                 "SELECT 1 FROM prompt_templates WHERE template_key = %s",
                 (key,),
@@ -73,7 +74,7 @@ def seed_prompt_templates_if_needed() -> None:
                 (key, body),
             )
 
-    _db_conn.commit()
+    _database_cfg.psycopg_connection.commit()
     logger.info("Prompt templates seeded from defaults where missing.")
 
 
@@ -82,7 +83,7 @@ def get_refinement_user_message_template() -> str:
 
 
 def list_prompt_templates() -> list[dict[str, str]]:
-    with _db_conn.cursor() as cur:
+    with _database_cfg.psycopg_connection.cursor() as cur:
         cur.execute(
             """
             SELECT template_key, body, updated_at::text
@@ -102,7 +103,7 @@ def get_template_body(key: str) -> str:
     if key not in TEMPLATE_KEYS:
         raise KeyError(key)
 
-    with _db_conn.cursor() as cur:
+    with _database_cfg.psycopg_connection.cursor() as cur:
         cur.execute(
             "SELECT body FROM prompt_templates WHERE template_key = %s",
             (key,),
@@ -136,7 +137,7 @@ def set_template_body(key: str, body: str) -> None:
 
     validate_template_placeholders(key, body)
 
-    with _db_conn.cursor() as cur:
+    with _database_cfg.psycopg_connection.cursor() as cur:
         cur.execute(
             """
             UPDATE prompt_templates
@@ -149,7 +150,7 @@ def set_template_body(key: str, body: str) -> None:
         if cur.rowcount != 1:
             raise LookupError(f"Prompt template not found for update: {key}")
 
-    _db_conn.commit()
+    _database_cfg.psycopg_connection.commit()
 
 
 def render_mustache_template(template: str, variables: dict[str, str]) -> str:

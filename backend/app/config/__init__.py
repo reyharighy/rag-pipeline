@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .job_queue import JobQueueConfig
 from .middleware import MiddlewareConfig
+from .database import DatabaseConfig
 
 _BACKEND_ROOT = Path(__file__).resolve().parent.parent
 
@@ -24,6 +25,11 @@ class Settings(BaseSettings):
     @property
     def job_queue(self) -> JobQueueConfig:
         return JobQueueConfig()
+
+    @computed_field
+    @property
+    def database(self) -> DatabaseConfig:
+        return DatabaseConfig()
 
 
 @lru_cache

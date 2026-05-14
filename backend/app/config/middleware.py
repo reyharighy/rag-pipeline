@@ -16,10 +16,12 @@ def _default_dev_origin_regex() -> str:
 class MiddlewareConfig(BaseModel):
     allowed_origins: list[str] = Field(
         default_factory=_default_cors_allowed_origins,
+        validate_default=True,
         description="Explicit origins passed to CORSMiddleware allow_origins.",
     )
 
     dev_origin_regex: str = Field(
         default_factory=_default_dev_origin_regex,
+        validate_default=True,
         description="Regex passed to CORSMiddleware allow_origin_regex (dev hosts/ports).",
     )

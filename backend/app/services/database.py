@@ -1,19 +1,14 @@
 import os
 import logging
-from functools import lru_cache
-from langchain_postgres import PGEngine, PGVectorStore, PostgresChatMessageHistory
+from langchain_postgres import PGVectorStore, PostgresChatMessageHistory
 from sqlalchemy.exc import ProgrammingError
-import psycopg
 from psycopg.errors import DuplicateTable
 
 from .embedding import get_embedding_service
+from app.config import get_settings
 
 logger = logging.getLogger("uvicorn.error")
-
-DATABASE_URL = os.getenv("DATABASE_URL", None)
-
-if DATABASE_URL is None:
-    raise ValueError("'DATABASE_URL' is not found")
+_database_cfg = get_settings().database
 
 VECTOR_EMBEDDING_DIMENSION_RAW = os.getenv("VECTOR_EMBEDDING_DIMENSION")
 
@@ -58,29 +53,15 @@ def _is_duplicate_table_error(exc: BaseException) -> bool:
     return "already exists" in msg and "relation" in msg
 
 
-def _database_url_for_psycopg(url: str) -> str:
-    for prefix in ("postgresql+psycopg://",):
-        if url.startswith(prefix):
-            return f"postgresql://{url[len(prefix) :]}"
-
-    return url
-
-
-_db_conn = psycopg.connect(_database_url_for_psycopg(DATABASE_URL))
-
 CHAT_MESSAGE_HISTORIES_TABLE_NAME = "chat_message_histories"
 VECTOR_STORE_TABLE_NAME = "documents"
-
-
-@lru_cache(maxsize=1)
-def _get_db_engine():
-    return PGEngine.from_connection_string(str(DATABASE_URL))
 
 
 def init_tables_if_not_exists():
     try:
         PostgresChatMessageHistory.create_tables(
-            _db_conn, CHAT_MESSAGE_HISTORIES_TABLE_NAME
+            _database_cfg.psycopg_connection,
+            CHAT_MESSAGE_HISTORIES_TABLE_NAME,
         )
 
         logger.info(
@@ -93,7 +74,7 @@ def init_tables_if_not_exists():
         )
 
     try:
-        _get_db_engine().init_vectorstore_table(
+        _database_cfg.engine.init_vectorstore_table(
             table_name=VECTOR_STORE_TABLE_NAME,
             vector_size=VECTOR_EMBEDDING_DIMENSION,
         )
@@ -123,13 +104,13 @@ def get_chat_history_service(session_id: str) -> PostgresChatMessageHistory:
     return PostgresChatMessageHistory(
         CHAT_MESSAGE_HISTORIES_TABLE_NAME,
         session_id,
-        sync_connection=_db_conn,
+        sync_connection=_database_cfg.psycopg_connection,
     )
 
 
 def get_vector_db_service():
     return PGVectorStore.create_sync(
-        engine=_get_db_engine(),
+        engine=_database_cfg.engine,
         table_name=VECTOR_STORE_TABLE_NAME,
         embedding_service=get_embedding_service(),
     )
