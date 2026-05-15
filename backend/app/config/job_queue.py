@@ -5,6 +5,7 @@ from pydantic import BaseModel, BeforeValidator, Field
 
 JOB_QUEUE_RESULT_TTL_DEFAULT = -1
 
+
 def parse_url(value: str) -> str:
     if value.strip() == "":
         raise ValueError("JOB_QUEUE_URL is not set")
