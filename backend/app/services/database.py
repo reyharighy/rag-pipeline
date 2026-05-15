@@ -9,22 +9,7 @@ from app.config import get_settings
 
 logger = logging.getLogger("uvicorn.error")
 _database_cfg = get_settings().database
-
-VECTOR_EMBEDDING_DIMENSION_RAW = os.getenv("VECTOR_EMBEDDING_DIMENSION")
-
-if (
-    VECTOR_EMBEDDING_DIMENSION_RAW is None
-    or str(VECTOR_EMBEDDING_DIMENSION_RAW).strip() == ""
-):
-    raise ValueError("'VECTOR_EMBEDDING_DIMENSION' is not found")
-
-try:
-    VECTOR_EMBEDDING_DIMENSION = int(VECTOR_EMBEDDING_DIMENSION_RAW)
-except ValueError as e:
-    raise ValueError("'VECTOR_EMBEDDING_DIMENSION' must be an integer") from e
-
-if VECTOR_EMBEDDING_DIMENSION <= 0:
-    raise ValueError("'VECTOR_EMBEDDING_DIMENSION' must be positive")
+_embedding_cfg = get_settings().embedding
 
 
 def _is_duplicate_table_error(exc: BaseException) -> bool:
@@ -76,7 +61,7 @@ def init_tables_if_not_exists():
     try:
         _database_cfg.engine.init_vectorstore_table(
             table_name=VECTOR_STORE_TABLE_NAME,
-            vector_size=VECTOR_EMBEDDING_DIMENSION,
+            vector_size=_embedding_cfg.dimension,
         )
 
         logger.info(f"Created table '{VECTOR_STORE_TABLE_NAME}'")
