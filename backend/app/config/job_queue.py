@@ -3,6 +3,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator, Field
 
+JOB_QUEUE_RESULT_TTL_DEFAULT = -1
 
 def parse_url(value: str) -> str:
     if value.strip() == "":
@@ -13,7 +14,7 @@ def parse_url(value: str) -> str:
 
 def parse_result_ttl(value: str) -> int:
     if value.strip() == "" or value.strip() == "-1":
-        return -1
+        return JOB_QUEUE_RESULT_TTL_DEFAULT
 
     try:
         int_value = int(value)
