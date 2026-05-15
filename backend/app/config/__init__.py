@@ -4,9 +4,10 @@ from pathlib import Path
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from .database import DatabaseConfig
+from .embedding import EmbeddingConfig
 from .job_queue import JobQueueConfig
 from .middleware import MiddlewareConfig
-from .database import DatabaseConfig
 
 _BACKEND_ROOT = Path(__file__).resolve().parent.parent
 
@@ -19,17 +20,22 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    middleware: MiddlewareConfig = Field(default_factory=MiddlewareConfig)
+    @computed_field
+    @property
+    def database(self) -> DatabaseConfig:
+        return DatabaseConfig()
+
+    @computed_field
+    @property
+    def embedding(self) -> EmbeddingConfig:
+        return EmbeddingConfig()
 
     @computed_field
     @property
     def job_queue(self) -> JobQueueConfig:
         return JobQueueConfig()
 
-    @computed_field
-    @property
-    def database(self) -> DatabaseConfig:
-        return DatabaseConfig()
+    middleware: MiddlewareConfig = Field(default_factory=MiddlewareConfig)
 
 
 @lru_cache

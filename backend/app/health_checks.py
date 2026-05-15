@@ -48,6 +48,7 @@ _cached_provider_probe_iso: str | None = None
 
 _database_cfg = get_settings().database
 _job_queue_cfg = get_settings().job_queue
+_embedding_cfg = get_settings().embedding
 
 
 def _parse_provider_cache_ttl_seconds() -> float:
@@ -84,7 +85,7 @@ def _count_storage_files(root: Path) -> int:
 
 
 def check_embedding_model() -> ModelStatus:
-    from app.services.embedding import EMBEDDING_MODEL, get_embedding_service
+    from app.services.embedding import get_embedding_service
 
     try:
         emb = get_embedding_service()
@@ -93,13 +94,13 @@ def check_embedding_model() -> ModelStatus:
         return {
             "status": "error",
             "detail": _truncate(str(e)),
-            "name": EMBEDDING_MODEL,
+            "name": _embedding_cfg.model,
         }
 
     return {
         "status": "ok",
         "detail": None,
-        "name": EMBEDDING_MODEL,
+        "name": _embedding_cfg.model,
     }
 
 
