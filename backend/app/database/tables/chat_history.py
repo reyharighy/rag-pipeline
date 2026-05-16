@@ -22,14 +22,15 @@ class ChatMessageHistories(Table):
             sync_connection=_database_cfg.psycopg_connection,
         )
 
-    def create_table(self):
+    @staticmethod
+    def create_table() -> None:
         try:
             PostgresChatMessageHistory.create_tables(
                 _database_cfg.psycopg_connection,
                 CHAT_MESSAGE_HISTORIES_TABLE_NAME,
             )
         except ProgrammingError as e:
-            if self.is_duplicate_table_error(e):
+            if Table.is_duplicate_table_error(e):
                 logger.info(
                     "Table '%s' already exists; skipping create.",
                     CHAT_MESSAGE_HISTORIES_TABLE_NAME,

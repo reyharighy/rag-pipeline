@@ -5,7 +5,8 @@ from psycopg.errors import DuplicateTable
 
 
 class Table(ABC):
-    def is_duplicate_table_error(self, exc: BaseException) -> bool:
+    @staticmethod
+    def is_duplicate_table_error(exc: BaseException) -> bool:
         seen: set[int] = set()
         cur: BaseException | None = exc
 
@@ -30,8 +31,8 @@ class Table(ABC):
 
         return "already exists" in msg and "relation" in msg
 
-    @abstractmethod
-    def create_table(self) -> None: ...
+    @staticmethod
+    def create_table() -> None: ...
 
     @abstractmethod
     def add(self, entry: Any) -> None: ...

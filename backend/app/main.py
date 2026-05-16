@@ -6,10 +6,12 @@ from app.agent import Graph
 from app.api import routers
 from app.config import get_settings
 from app.services import init_tables_if_not_exists
+from app.database.tables import ChatMessageHistories
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    ChatMessageHistories.create_table()
     init_tables_if_not_exists()
     app.state.graph = Graph().build_graph()
 
