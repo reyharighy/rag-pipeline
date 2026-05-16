@@ -1,6 +1,6 @@
 import os
 import logging
-from langchain_postgres import PGVectorStore, PostgresChatMessageHistory
+from langchain_postgres import PGVectorStore
 from sqlalchemy.exc import ProgrammingError
 from psycopg.errors import DuplicateTable
 
@@ -38,26 +38,10 @@ def _is_duplicate_table_error(exc: BaseException) -> bool:
     return "already exists" in msg and "relation" in msg
 
 
-CHAT_MESSAGE_HISTORIES_TABLE_NAME = "chat_message_histories"
 VECTOR_STORE_TABLE_NAME = "documents"
 
 
 def init_tables_if_not_exists():
-    try:
-        PostgresChatMessageHistory.create_tables(
-            _database_cfg.psycopg_connection,
-            CHAT_MESSAGE_HISTORIES_TABLE_NAME,
-        )
-
-        logger.info(
-            "Chat message history table '%s' is ready (CREATE IF NOT EXISTS).",
-            CHAT_MESSAGE_HISTORIES_TABLE_NAME,
-        )
-    except ProgrammingError:
-        raise ValueError(
-            f"Failed to create table '{CHAT_MESSAGE_HISTORIES_TABLE_NAME}'"
-        )
-
     try:
         _database_cfg.engine.init_vectorstore_table(
             table_name=VECTOR_STORE_TABLE_NAME,
@@ -83,14 +67,6 @@ def init_tables_if_not_exists():
 
     init_prompt_templates_table()
     seed_prompt_templates_if_needed()
-
-
-def get_chat_history_service(session_id: str) -> PostgresChatMessageHistory:
-    return PostgresChatMessageHistory(
-        CHAT_MESSAGE_HISTORIES_TABLE_NAME,
-        session_id,
-        sync_connection=_database_cfg.psycopg_connection,
-    )
 
 
 def get_vector_db_service():
