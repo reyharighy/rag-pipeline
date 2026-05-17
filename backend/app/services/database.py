@@ -42,24 +42,6 @@ VECTOR_STORE_TABLE_NAME = "documents"
 
 
 def init_tables_if_not_exists():
-    try:
-        _database_cfg.engine.init_vectorstore_table(
-            table_name=VECTOR_STORE_TABLE_NAME,
-            vector_size=_embedding_cfg.dimension,
-        )
-
-        logger.info(f"Created table '{VECTOR_STORE_TABLE_NAME}'")
-    except ProgrammingError as e:
-        if _is_duplicate_table_error(e):
-            logger.info(
-                "Vector store table '%s' already exists; skipping create.",
-                VECTOR_STORE_TABLE_NAME,
-            )
-        else:
-            raise ValueError(
-                f"Failed to create table '{VECTOR_STORE_TABLE_NAME}'"
-            ) from e
-
     from app.services.prompt_templates import (
         init_prompt_templates_table,
         seed_prompt_templates_if_needed,
