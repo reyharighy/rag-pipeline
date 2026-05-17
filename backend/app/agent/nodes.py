@@ -5,9 +5,7 @@ from langchain_core.messages.system import SystemMessage
 from langgraph.runtime import Runtime
 
 from app.services import (
-    RETRIEVAL_TOP_K,
     get_language_model,
-    get_vector_db_service,
     with_retry_exception,
 )
 
@@ -17,11 +15,15 @@ from app.services.prompt_templates import (
     get_template_body,
 )
 
+from app.config import get_settings
+from app.database.tables import VectorDocument
+
 from .composer import compose_last_human_message_for_node
 from .runtime import Context
 from .schemas import RefinedRetrievalQuery
 from .state import State
 
+_embedding_cfg = get_settings().embedding
 
 def refine_query(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
     system_message = SystemMessage(get_template_body(REFINE_SYSTEM).strip())
@@ -54,13 +56,16 @@ def refine_query(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
 
 
 def get_relevant_docs(state: State, runtime: Runtime[Context]) -> dict[str, Any]:
-    store = get_vector_db_service()
+    vector_document = VectorDocument(_embedding_cfg.service)
     query_text = cast(str, state.get("refined_query") or "").strip()
 
     if not query_text:
         query_text = cast(str, state["messages"][-1].content)
 
-    relevant_docs = store.similarity_search(cast(str, query_text), k=RETRIEVAL_TOP_K)
+    relevant_docs = vector_document.similarity_search(
+        query=query_text,
+        top_k=8,
+    )
 
     return {"relevant_docs": relevant_docs}
 

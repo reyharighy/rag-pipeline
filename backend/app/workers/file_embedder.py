@@ -1,7 +1,10 @@
 from pathlib import Path
 from app.rag import extract_text, chunk_text, transform_chunks_into_docs
-from app.services import get_vector_db_service
 
+from app.config import get_settings
+from app.database.tables import VectorDocument
+
+_embedding_cfg = get_settings().embedding
 
 def embed_file_and_store(
     file_path: Path, file_name: str, content_type: str, _file_size: int
@@ -11,7 +14,8 @@ def embed_file_and_store(
     documents = transform_chunks_into_docs(chunks, file_path, file_name, content_type)
 
     try:
-        get_vector_db_service().add_documents(documents)
+        vector_document = VectorDocument(_embedding_cfg.service)
+        vector_document.add(entry=documents)
     except Exception as e:
         print(f"[FILE EMBEDDER] Failed to embed and store file: {e}")
 

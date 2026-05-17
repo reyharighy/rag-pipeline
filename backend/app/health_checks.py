@@ -85,10 +85,8 @@ def _count_storage_files(root: Path) -> int:
 
 
 def check_embedding_model() -> ModelStatus:
-    from app.services.embedding import get_embedding_service
-
     try:
-        emb = get_embedding_service()
+        emb = _embedding_cfg.service
         emb.embed_query("health")
     except Exception as e:  # noqa: BLE001 — surface any provider/transport failure
         return {

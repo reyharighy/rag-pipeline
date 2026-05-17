@@ -159,12 +159,12 @@ def chat_agent(
                 if assistant_text is not None:
                     chat_message_histories = ChatMessageHistories(session_id)
 
-                    chat_message_histories.add(
-                        [
-                            HumanMessage(content=chat_agent_request.chat_input),
-                            AIMessage(content=assistant_text),
-                        ]
-                    )
+                    entry = [
+                        HumanMessage(content=chat_agent_request.chat_input),
+                        AIMessage(content=assistant_text),
+                    ]
+
+                    chat_message_histories.add(entry=entry)
 
         yield from event_generator()
 
