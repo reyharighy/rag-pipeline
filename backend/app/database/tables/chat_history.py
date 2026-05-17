@@ -53,19 +53,32 @@ class ChatMessageHistories(Table):
                 CHAT_MESSAGE_HISTORIES_TABLE_NAME,
             )
 
-    def add(self, entry: list[BaseMessage] | BaseMessage) -> None:
+    def add(self, **kwargs: Any) -> None:
+        entry = kwargs.get("entry", None)
+
+        if entry is None:
+            raise ValueError("entry is required")
+
         if isinstance(entry, list) and not all(
             isinstance(r, BaseMessage) for r in entry
         ):
             raise ValueError("entry is a list that contains non-BaseMessage items")
+
+        if not isinstance(entry, list) and not isinstance(entry, BaseMessage):
+            raise ValueError("entry is not a list or BaseMessage")
 
         if isinstance(entry, BaseMessage):
             entry = [entry]
 
         self.service.add_messages(entry)
 
-    def get(self, query: Optional[Any] = None) -> list[BaseMessage]:
+    def get(self, **kwargs: Any) -> list[BaseMessage]:
+        query = kwargs.get("query", None)
+
         if query is not None:
-            raise ValueError("query is not implemented")
+            raise NotImplementedError("query is not implemented")
 
         return self.service.get_messages()
+
+    def similarity_search(self, **kwargs: Any) -> Any:
+        raise NotImplementedError("ChatMessageHistories does not support similarity search")
