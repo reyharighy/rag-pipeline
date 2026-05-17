@@ -59,9 +59,6 @@ class ChatMessageHistories(Table):
         ):
             raise ValueError("entry is a list that contains non-BaseMessage items")
 
-        if not isinstance(entry, list) and not isinstance(entry, BaseMessage):
-            raise ValueError("entry is a single item that is not a BaseMessage")
-
         if isinstance(entry, BaseMessage):
             entry = [entry]
 
